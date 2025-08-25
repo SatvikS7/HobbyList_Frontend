@@ -1,0 +1,20 @@
+server:
+    error:
+        include-message: always
+        include-binding-errors: always
+spring:
+    application:
+        name: registration
+    datasource:
+        url: jdbc:postgresql://localhost:5432/registration
+        username: hobby_user
+        password: hobbsList
+jpa:
+    hibernate:
+        ddl-auto: create-drop
+    properties:
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                format_sql: true
+            show_sql: true
