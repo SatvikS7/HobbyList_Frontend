@@ -1,8 +1,11 @@
 package HobbyList.example.HobbyList.controller;
 
 import HobbyList.example.HobbyList.model.User;
+import HobbyList.example.HobbyList.dto.LoginRequest;
+import HobbyList.example.HobbyList.dto.SignupRequest;
 import HobbyList.example.HobbyList.repository.UserRepository;
 import HobbyList.example.HobbyList.service.JwtService;
+import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,23 +31,25 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody User request) {
+    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequest request) {
         // Check if email already exists
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(request.email()).isPresent()) {
             return ResponseEntity.badRequest().body("Email already in use");
         }
 
         // Encode password and save user
-        request.setPassword(passwordEncoder.encode(request.getPassword()));
-        userRepository.save(request);
-        
+        User newUser = new User();
+        newUser.setEmail(request.email());
+        newUser.setPassword(passwordEncoder.encode(request.password()));
+        newUser.setRole("ROLE_USER");
+        userRepository.save(newUser);
         return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User request) {
-        return userRepository.findByEmail(request.getEmail())
-            .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        return userRepository.findByEmail(request.email())
+            .filter(user -> passwordEncoder.matches(request.password(), user.getPassword()))
             .map(user -> {
                 String token = jwtService.generateToken(user);
                 return ResponseEntity.ok(Map.of("token", token));

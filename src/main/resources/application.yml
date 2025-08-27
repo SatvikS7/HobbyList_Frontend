@@ -4,20 +4,20 @@ server:
         include-binding-errors: always
 spring:
     application:
-        name: registration
+        name: users
     datasource:
-        url: jdbc:postgresql://localhost:5432/registration
+        url: jdbc:postgresql://localhost:5432/users
         username: hobby_user
-        password: hobbsList
-jpa:
-    hibernate:
-        ddl-auto: create-drop
-    properties:
+        password: hobbyUser
+        driver-class-name: org.postgresql.Driver
+    jpa:
+        hibernate:
+            ddl-auto: create-drop
         properties:
             hibernate:
                 dialect: org.hibernate.dialect.PostgreSQLDialect
                 format_sql: true
-            show_sql: true
+        show_sql: true
 jwt:
     secret: myVeryLongAndSecureSecretKeyThatIsAtLeast256BitsLongForHS256AlgorithmSecurity
     expiration: 86400000
