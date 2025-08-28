@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -73,13 +74,38 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        return userRepository.findByEmail(request.email())
-            .filter(user -> passwordEncoder.matches(request.password(), user.getPassword()))
-            .map(user -> {
-                String token = jwtService.generateToken(user);
-                return ResponseEntity.ok(Map.of("token", token));
-            })
-            .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                   .body(Map.of("error", "Invalid email or password")));
+        Optional<User> optionalUser = userRepository.findByEmail(request.email());
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                   .body(Map.of("error", "Invalid email or password"));
+        }
+        User user = optionalUser.get();
+        if(!user.isActive()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Account not activated"));
+        }
+
+        if(!passwordEncoder.matches(request.password(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Invalid email or password"));
+        }
+        String token = jwtService.generateToken(user);
+        return ResponseEntity.ok(Map.of("token", token));    
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyUser(@RequestParam("token") String token) {
+        Optional<VerificationToken> verificationToken = tokenRepository.findByToken(token);
+
+        if (verificationToken.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid verification token"));
+        }
+
+        User user = verificationToken.get().getUser();
+        user.setActive(true);
+        userRepository.save(user);
+
+        tokenRepository.delete(verificationToken.get());
+        return ResponseEntity.ok(Map.of("message", "Account verified successfully"));
     }
 }

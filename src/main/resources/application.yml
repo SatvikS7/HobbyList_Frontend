@@ -21,14 +21,15 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: hobbylistproj@gmail.com
-    password: your-app-password
+    username: ${EMAIL_USER}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
 jwt:
   secret: myVeryLongAndSecureSecretKeyThatIsAtLeast256BitsLongForHS256AlgorithmSecurity
   expiration: 86400000

@@ -34,7 +34,7 @@ public class User implements UserDetails{
     private String password;
 
     private String role;
-    private boolean isActive = false;
+    private boolean active = false;
 
     public User() {}
 
@@ -77,8 +77,12 @@ public class User implements UserDetails{
         return true;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
+    public boolean isActive() {
+        return active;
     }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
 }

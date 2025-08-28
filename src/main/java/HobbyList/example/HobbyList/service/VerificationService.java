@@ -5,13 +5,14 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 
 import HobbyList.example.HobbyList.model.VerificationToken;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.TokenRepository;
 
+@Service
 public class VerificationService {
-    @Autowired
     private final JavaMailSender mailSender;
     private final TokenRepository tokenRepository;
 
