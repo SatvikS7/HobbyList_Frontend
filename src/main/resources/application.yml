@@ -3,13 +3,18 @@ server:
     include-message: always
     include-binding-errors: always
 spring:
-  application:
-    name: users
   datasource:
-    url: jdbc:postgresql://localhost:5432/users
-    username: hobby_user
-    password: hobbyUser
-    driver-class-name: org.postgresql.Driver
+    users:
+      url: jdbc:postgresql://localhost:5432/users
+      username: ${DB_USER}
+      password: ${DB_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+    tokens:
+      url: jdbc:postgresql://localhost:5432/verification_tokens
+      username: ${DB_USER}
+      password: ${DB_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+    
   jpa:
     hibernate:
       ddl-auto: create-drop

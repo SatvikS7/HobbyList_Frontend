@@ -2,19 +2,22 @@ package HobbyList.example.HobbyList.service;
 
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import HobbyList.example.HobbyList.model.VerificationToken;
-import HobbyList.example.HobbyList.model.User;
-import HobbyList.example.HobbyList.repository.TokenRepository;
+import HobbyList.example.HobbyList.model.token.VerificationToken;
+import HobbyList.example.HobbyList.model.user.User;
+import HobbyList.example.HobbyList.repository.token.TokenRepository;
 
+import org.springframework.beans.factory.annotation.Value;
 @Service
 public class VerificationService {
     private final JavaMailSender mailSender;
     private final TokenRepository tokenRepository;
+
+    @Value("${FRONTEND_URL}")
+    private String frontendUrl;
 
     public VerificationService(JavaMailSender mailSender, TokenRepository tokenRepository) {
         this.mailSender = mailSender;
@@ -28,7 +31,7 @@ public class VerificationService {
         VerificationToken verificationToken = new VerificationToken(token, user);
         tokenRepository.save(verificationToken);
 
-        String verificationUrl = "http://localhost:8080/api/auth/verify?token=" + token;
+        String verificationUrl = frontendUrl + "verification?token=" + token;
 
         SimpleMailMessage mail = new SimpleMailMessage();
         mail.setTo(user.getEmail());

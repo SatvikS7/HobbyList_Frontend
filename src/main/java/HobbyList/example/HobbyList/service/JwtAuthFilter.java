@@ -1,6 +1,5 @@
 package HobbyList.example.HobbyList.service;
 
-import java.util.List;
 import java.io.IOException;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -8,8 +7,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import HobbyList.example.HobbyList.repository.UserRepository;
-import HobbyList.example.HobbyList.model.User;
+import HobbyList.example.HobbyList.model.user.User;
+import HobbyList.example.HobbyList.repository.user.UserRepository;
 import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,11 +1,11 @@
 package HobbyList.example.HobbyList.controller;
 
-import HobbyList.example.HobbyList.model.User;
-import HobbyList.example.HobbyList.model.VerificationToken;
+import HobbyList.example.HobbyList.model.token.VerificationToken;
+import HobbyList.example.HobbyList.model.user.User;
 import HobbyList.example.HobbyList.dto.LoginRequest;
 import HobbyList.example.HobbyList.dto.SignupRequest;
-import HobbyList.example.HobbyList.repository.UserRepository;
-import HobbyList.example.HobbyList.repository.TokenRepository;
+import HobbyList.example.HobbyList.repository.token.TokenRepository;
+import HobbyList.example.HobbyList.repository.user.UserRepository;
 import HobbyList.example.HobbyList.service.JwtService;
 import HobbyList.example.HobbyList.service.VerificationService;
 import jakarta.validation.Valid;

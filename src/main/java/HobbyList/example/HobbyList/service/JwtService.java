@@ -1,8 +1,8 @@
 package HobbyList.example.HobbyList.service;
 
 import HobbyList.example.HobbyList.dto.SignupRequest;
-import HobbyList.example.HobbyList.model.User;
-import HobbyList.example.HobbyList.model.VerificationToken;
+import HobbyList.example.HobbyList.model.token.VerificationToken;
+import HobbyList.example.HobbyList.model.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;

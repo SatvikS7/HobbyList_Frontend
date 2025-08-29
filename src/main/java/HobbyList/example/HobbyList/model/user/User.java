@@ -1,4 +1,4 @@
-package HobbyList.example.HobbyList.model;
+package HobbyList.example.HobbyList.model.user;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -6,6 +6,8 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import HobbyList.example.HobbyList.model.token.VerificationToken;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +37,9 @@ public class User implements UserDetails{
 
     private String role;
     private boolean active = false;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private VerificationToken verificationToken;
 
     public User() {}
 
@@ -83,6 +88,11 @@ public class User implements UserDetails{
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public void setVerificationToken(VerificationToken token) {
+        this.verificationToken = token;
+        token.setUser(this);
     }
 
 }

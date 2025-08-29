@@ -1,10 +1,10 @@
-package HobbyList.example.HobbyList.repository;
-import HobbyList.example.HobbyList.model.User;
-
+package HobbyList.example.HobbyList.repository.user;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import HobbyList.example.HobbyList.model.user.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {

@@ -1,6 +1,8 @@
-package HobbyList.example.HobbyList.model;
+package HobbyList.example.HobbyList.model.token;
 
 import java.time.LocalDateTime;
+
+import HobbyList.example.HobbyList.model.user.User;
 import lombok.Data;
 
 import jakarta.persistence.Entity;
