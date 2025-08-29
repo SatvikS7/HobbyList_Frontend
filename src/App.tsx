@@ -3,6 +3,7 @@ import './App.css'
 import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage'
 import LandingPage from './pages/LandingPage'
+import VerificationPage from './pages/VerificationPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/verification" element={<VerificationPage />} />
       </Routes>
     </div>
   )
