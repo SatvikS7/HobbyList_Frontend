@@ -2,14 +2,11 @@ package HobbyList.example.HobbyList.model.token;
 
 import java.time.LocalDateTime;
 
-import HobbyList.example.HobbyList.model.user.User;
 import lombok.Data;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
 
@@ -23,17 +20,16 @@ public class VerificationToken {
 
     private String token;
 
-    @OneToOne
-    @JoinColumn(nullable = false, name = "user_id")
-    private User user;
+    @Column(nullable = false, name = "user_id")
+    private Long userId;
 
     private LocalDateTime expiryDate;
 
     public VerificationToken() {}
 
-    public VerificationToken(String token, User user) {
+    public VerificationToken(String token, Long userId) {
         this.token = token;
-        this.user = user;
+        this.userId = userId;
         this.expiryDate = LocalDateTime.now().plusHours(24);
     }
 }

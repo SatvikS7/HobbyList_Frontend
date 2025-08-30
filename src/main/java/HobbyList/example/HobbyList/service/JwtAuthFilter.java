@@ -9,7 +9,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import HobbyList.example.HobbyList.model.user.User;
 import HobbyList.example.HobbyList.repository.user.UserRepository;
-import io.micrometer.common.lang.NonNull;
+import org.springframework.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

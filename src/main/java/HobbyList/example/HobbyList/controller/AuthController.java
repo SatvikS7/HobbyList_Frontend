@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -51,7 +50,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email in use"));
             } else {
                 // Resend Email
-                verificationService.sendVerificationEmail(user);
+                verificationService.sendVerificationEmail(user.getId());
             }
         }
 
@@ -61,13 +60,7 @@ public class AuthController {
         newUser.setPassword(passwordEncoder.encode(request.password()));
         newUser.setRole("ROLE_USER");
         userRepository.save(newUser);
-        /* 
-        String token = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken(token, newUser);
-        tokenRepository.save(verificationToken);
-        */
-
-        verificationService.sendVerificationEmail(newUser/* , verificationToken*/);
+        verificationService.sendVerificationEmail(newUser.getId());
 
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
@@ -101,7 +94,11 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid verification token"));
         }
 
-        User user = verificationToken.get().getUser();
+        Long userId = verificationToken.get().getUserId();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
+        }
         user.setActive(true);
         userRepository.save(user);
 

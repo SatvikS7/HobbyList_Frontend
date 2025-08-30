@@ -2,26 +2,16 @@ server:
   error:
     include-message: always
     include-binding-errors: always
-spring:
-  datasource:
-    users:
-      url: jdbc:postgresql://localhost:5432/users
-      username: ${DB_USER}
-      password: ${DB_PASSWORD}
-      driver-class-name: org.postgresql.Driver
-    tokens:
-      url: jdbc:postgresql://localhost:5432/verification_tokens
-      username: ${DB_USER}
-      password: ${DB_PASSWORD}
-      driver-class-name: org.postgresql.Driver
-    
+
+DB_DRIVER_CLASS: ${DB_DRIVER_CLASS}
+DB_BASE_URL: ${DB_BASE_URL}
+DB_USER: ${DB_USER}
+DB_PASSWORD: ${DB_PASSWORD}
+DB_DDL_AUTO: ${DB_DDL_AUTO}
+DB_DIALECT: ${DB_DIALECT}
+
+spring:    
   jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
     show-sql: true
   mail:
     host: smtp.gmail.com
