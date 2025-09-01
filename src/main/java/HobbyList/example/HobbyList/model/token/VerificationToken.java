@@ -23,13 +23,16 @@ public class VerificationToken {
     @Column(nullable = false, name = "user_id")
     private Long userId;
 
+    private String type;
+
     private LocalDateTime expiryDate;
 
     public VerificationToken() {}
 
-    public VerificationToken(String token, Long userId) {
+    public VerificationToken(String token, Long userId, String type) {
         this.token = token;
         this.userId = userId;
+        this.type = type;
         this.expiryDate = LocalDateTime.now().plusHours(24);
     }
 }

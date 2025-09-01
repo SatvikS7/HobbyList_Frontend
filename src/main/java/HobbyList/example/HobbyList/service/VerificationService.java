@@ -27,14 +27,19 @@ public class VerificationService {
         this.userRepository = userRepository;
     }
 
-    public void sendVerificationEmail(Long userId) {
+    public void sendVerificationEmail(Long userId, String type) {
         // Generate verification token
         String token = UUID.randomUUID().toString();
 
-        VerificationToken verificationToken = new VerificationToken(token, userId);
+        VerificationToken verificationToken = new VerificationToken(token, userId, type);
         tokenRepository.save(verificationToken);
+        String compositeUrl = "";
 
-        String verificationUrl = frontendUrl + "verification?token=" + token;
+        if(type.equals("EMAIL_VERIFICATION")) {
+            compositeUrl = frontendUrl + "verification?token=" + token;
+        } else if(type.equals("PASSWORD_RESET")) {
+            compositeUrl = frontendUrl + "reset-password?token=" + token;
+        }
 
         SimpleMailMessage mail = new SimpleMailMessage();
         User user = userRepository.findById(userId).orElse(null);
@@ -42,9 +47,14 @@ public class VerificationService {
             return;
         }
         mail.setTo(user.getEmail());
-        mail.setSubject("Verify your email");
-        mail.setText("Click the link to verify your account: " + verificationUrl);
 
+        if(type.equals("EMAIL_VERIFICATION")) {
+            mail.setSubject("Verify your email");
+            mail.setText("Click the link to verify your account: " + compositeUrl);
+        } else if(type.equals("PASSWORD_RESET")) {
+            mail.setSubject("Reset your password");
+            mail.setText("Click the link to reset your password: " + compositeUrl);
+        }
         mailSender.send(mail);
     }
     

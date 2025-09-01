@@ -50,7 +50,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email in use"));
             } else {
                 // Resend Email
-                verificationService.sendVerificationEmail(user.getId());
+                verificationService.sendVerificationEmail(user.getId(), "EMAIL_VERIFICATION");
             }
         }
 
@@ -60,7 +60,7 @@ public class AuthController {
         newUser.setPassword(passwordEncoder.encode(request.password()));
         newUser.setRole("ROLE_USER");
         userRepository.save(newUser);
-        verificationService.sendVerificationEmail(newUser.getId());
+        verificationService.sendVerificationEmail(newUser.getId(), "EMAIL_VERIFICATION");
 
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
