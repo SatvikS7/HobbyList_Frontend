@@ -79,3 +79,9 @@ button:focus-visible {
   background: linear-gradient(45deg, #fadd9e, #daba76);
   padding: 2rem;
 }
+
+.status-text {
+  font-size: 1.2em;
+  color: #333;
+  margin-top: 1em;
+}

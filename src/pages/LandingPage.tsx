@@ -41,6 +41,20 @@ const LandingPage = () => {
             Sign Up
           </button>
         </Link>
+        <Link to="/password-reset">
+          <button
+            style={{
+              padding: "1rem 2rem",
+              fontSize: "1.1rem",
+              borderRadius: "8px",
+              border: "none",
+              color: "green",
+              cursor: "pointer",
+            }}
+          >
+            Reset Password
+          </button>
+        </Link>
       </div>
     </div>
   );

@@ -37,8 +37,8 @@ function VerificationPage() {
   return (
     <div>
       <div>
-        <h1>Email Verification</h1>
-        <p>{status}</p>
+        <h1 className="status-text">Email Verification</h1>
+        <p className="status-text">{status}</p>
       </div>
     </div>
   );
