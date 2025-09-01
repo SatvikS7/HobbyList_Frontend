@@ -4,16 +4,17 @@ import HobbyList.example.HobbyList.model.token.VerificationToken;
 import HobbyList.example.HobbyList.model.user.User;
 import HobbyList.example.HobbyList.dto.LoginRequest;
 import HobbyList.example.HobbyList.dto.SignupRequest;
+import HobbyList.example.HobbyList.dto.VerificationEmailEvent;
 import HobbyList.example.HobbyList.repository.token.TokenRepository;
 import HobbyList.example.HobbyList.repository.user.UserRepository;
 import HobbyList.example.HobbyList.service.JwtService;
-import HobbyList.example.HobbyList.service.VerificationService;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Map;
 import java.util.Optional;
@@ -27,18 +28,18 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
-    private final VerificationService verificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AuthController(UserRepository userRepository, 
                          PasswordEncoder passwordEncoder,
                          JwtService jwtService,
                          TokenRepository tokenRepository,
-                         VerificationService verificationService) {
+                         ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.tokenRepository = tokenRepository;
-        this.verificationService = verificationService;
+        this.eventPublisher = eventPublisher;
     }
 
     @PostMapping("/signup")
@@ -50,7 +51,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email in use"));
             } else {
                 // Resend Email
-                verificationService.sendVerificationEmail(user.getId(), "EMAIL_VERIFICATION");
+                eventPublisher.publishEvent(new VerificationEmailEvent(user.getId(), "EMAIL_VERIFICATION"));
             }
         }
 
@@ -60,8 +61,7 @@ public class AuthController {
         newUser.setPassword(passwordEncoder.encode(request.password()));
         newUser.setRole("ROLE_USER");
         userRepository.save(newUser);
-        verificationService.sendVerificationEmail(newUser.getId(), "EMAIL_VERIFICATION");
-
+        eventPublisher.publishEvent(new VerificationEmailEvent(newUser.getId(), "EMAIL_VERIFICATION"));
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
