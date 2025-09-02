@@ -19,6 +19,6 @@ public class VerificationEmailListener {
     @Async
     @EventListener
     public void handleVerificationEmailEvent(VerificationEmailEvent event) {
-        verificationService.sendVerificationEmail(event.userId(), event.type());
+        verificationService.sendVerificationEmail(event.user(), event.type());
     }
 }

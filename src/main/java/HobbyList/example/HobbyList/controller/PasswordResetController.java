@@ -1,11 +1,11 @@
 package HobbyList.example.HobbyList.controller;
 
-import HobbyList.example.HobbyList.model.token.VerificationToken;
-import HobbyList.example.HobbyList.model.user.User;
+import HobbyList.example.HobbyList.model.User;
+import HobbyList.example.HobbyList.model.VerificationToken;
 import HobbyList.example.HobbyList.dto.ResetPasswordRequest;
 import HobbyList.example.HobbyList.dto.ResetPassword;
-import HobbyList.example.HobbyList.repository.token.TokenRepository;
-import HobbyList.example.HobbyList.repository.user.UserRepository;
+import HobbyList.example.HobbyList.repository.TokenRepository;
+import HobbyList.example.HobbyList.repository.UserRepository;
 import jakarta.validation.Valid;
 import HobbyList.example.HobbyList.dto.VerificationEmailEvent;
 
@@ -46,7 +46,7 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
         }
         User user = userOptional.get();
-        eventPublisher.publishEvent(new VerificationEmailEvent(user.getId(), "PASSWORD_RESET"));
+        eventPublisher.publishEvent(new VerificationEmailEvent(user, "PASSWORD_RESET"));
         return ResponseEntity.ok(Map.of("message", "Password reset email sent successfully"));
     }
 
@@ -57,8 +57,8 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid or expired token"));
         }
 
-        Long userId = verificationToken.get().getUserId();
-        User user = userRepository.findById(userId).orElse(null);
+        User user = verificationToken.get().getUser();
+        //User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
         }

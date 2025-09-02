@@ -7,8 +7,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import HobbyList.example.HobbyList.model.user.User;
-import HobbyList.example.HobbyList.repository.user.UserRepository;
+import HobbyList.example.HobbyList.model.User;
+import HobbyList.example.HobbyList.repository.UserRepository;
+
 import org.springframework.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

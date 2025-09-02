@@ -6,10 +6,10 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import HobbyList.example.HobbyList.model.token.VerificationToken;
-import HobbyList.example.HobbyList.model.user.User;
-import HobbyList.example.HobbyList.repository.token.TokenRepository;
-import HobbyList.example.HobbyList.repository.user.UserRepository;
+import HobbyList.example.HobbyList.model.User;
+import HobbyList.example.HobbyList.model.VerificationToken;
+import HobbyList.example.HobbyList.repository.TokenRepository;
+import HobbyList.example.HobbyList.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 @Service
@@ -27,11 +27,11 @@ public class VerificationService {
         this.userRepository = userRepository;
     }
 
-    public void sendVerificationEmail(Long userId, String type) {
+    public void sendVerificationEmail(User user, String type) {
         // Generate verification token
         String token = UUID.randomUUID().toString();
 
-        VerificationToken verificationToken = new VerificationToken(token, userId, type);
+        VerificationToken verificationToken = new VerificationToken(token, user, type);
         tokenRepository.save(verificationToken);
         String compositeUrl = "";
 
@@ -42,10 +42,12 @@ public class VerificationService {
         }
 
         SimpleMailMessage mail = new SimpleMailMessage();
+        /* 
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return;
         }
+        */
         mail.setTo(user.getEmail());
 
         if(type.equals("EMAIL_VERIFICATION")) {

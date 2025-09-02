@@ -1,12 +1,12 @@
 package HobbyList.example.HobbyList.controller;
 
-import HobbyList.example.HobbyList.model.token.VerificationToken;
-import HobbyList.example.HobbyList.model.user.User;
+import HobbyList.example.HobbyList.model.User;
+import HobbyList.example.HobbyList.model.VerificationToken;
 import HobbyList.example.HobbyList.dto.LoginRequest;
 import HobbyList.example.HobbyList.dto.SignupRequest;
 import HobbyList.example.HobbyList.dto.VerificationEmailEvent;
-import HobbyList.example.HobbyList.repository.token.TokenRepository;
-import HobbyList.example.HobbyList.repository.user.UserRepository;
+import HobbyList.example.HobbyList.repository.TokenRepository;
+import HobbyList.example.HobbyList.repository.UserRepository;
 import HobbyList.example.HobbyList.service.JwtService;
 import jakarta.validation.Valid;
 
@@ -51,7 +51,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email in use"));
             } else {
                 // Resend Email
-                eventPublisher.publishEvent(new VerificationEmailEvent(user.getId(), "EMAIL_VERIFICATION"));
+                eventPublisher.publishEvent(new VerificationEmailEvent(user, "EMAIL_VERIFICATION"));
             }
         }
 
@@ -61,7 +61,7 @@ public class AuthController {
         newUser.setPassword(passwordEncoder.encode(request.password()));
         newUser.setRole("ROLE_USER");
         userRepository.save(newUser);
-        eventPublisher.publishEvent(new VerificationEmailEvent(newUser.getId(), "EMAIL_VERIFICATION"));
+        eventPublisher.publishEvent(new VerificationEmailEvent(newUser, "EMAIL_VERIFICATION"));
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
@@ -94,8 +94,8 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid verification token"));
         }
 
-        Long userId = verificationToken.get().getUserId();
-        User user = userRepository.findById(userId).orElse(null);
+        User user = verificationToken.get().getUser();
+        //User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
         }

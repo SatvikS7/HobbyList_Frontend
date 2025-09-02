@@ -1,3 +1,5 @@
 package HobbyList.example.HobbyList.dto;
 
-public record VerificationEmailEvent(Long userId, String type) {}
+import HobbyList.example.HobbyList.model.User;
+
+public record VerificationEmailEvent(User user, String type) {}

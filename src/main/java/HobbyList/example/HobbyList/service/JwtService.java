@@ -1,10 +1,11 @@
 package HobbyList.example.HobbyList.service;
 
-import HobbyList.example.HobbyList.model.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import HobbyList.example.HobbyList.model.User;
 
 import java.util.Date;
 

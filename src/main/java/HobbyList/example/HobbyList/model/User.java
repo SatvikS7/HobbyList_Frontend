@@ -1,4 +1,4 @@
-package HobbyList.example.HobbyList.model.user;
+package HobbyList.example.HobbyList.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -27,7 +27,7 @@ public class User implements UserDetails{
     //@Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -35,6 +35,12 @@ public class User implements UserDetails{
 
     private String role;
     private boolean active = false;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Photo> photos;
+
+    @OneToOne
+    private VerificationToken token;
 
     public User() {}
 
