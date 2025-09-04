@@ -9,22 +9,19 @@ import org.springframework.stereotype.Service;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.model.VerificationToken;
 import HobbyList.example.HobbyList.repository.TokenRepository;
-import HobbyList.example.HobbyList.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 @Service
 public class VerificationService {
     private final JavaMailSender mailSender;
     private final TokenRepository tokenRepository;
-    private final UserRepository userRepository;
 
     @Value("${FRONTEND_URL}")
     private String frontendUrl;
 
-    public VerificationService(JavaMailSender mailSender, TokenRepository tokenRepository, UserRepository userRepository) {
+    public VerificationService(JavaMailSender mailSender, TokenRepository tokenRepository) {
         this.mailSender = mailSender;
         this.tokenRepository = tokenRepository;
-        this.userRepository = userRepository;
     }
 
     public void sendVerificationEmail(User user, String type) {
@@ -42,12 +39,6 @@ public class VerificationService {
         }
 
         SimpleMailMessage mail = new SimpleMailMessage();
-        /* 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return;
-        }
-        */
         mail.setTo(user.getEmail());
 
         if(type.equals("EMAIL_VERIFICATION")) {

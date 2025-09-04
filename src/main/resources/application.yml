@@ -25,7 +25,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show-sql: true
+    show-sql: false
   mail:
     host: smtp.gmail.com
     port: 587
@@ -41,3 +41,8 @@ spring:
 jwt:
   secret: myVeryLongAndSecureSecretKeyThatIsAtLeast256BitsLongForHS256AlgorithmSecurity
   expiration: 86400000
+logging:
+  level:
+    '[org.springframework.web]': DEBUG
+    '[org.springframework.security]': DEBUG
+    '[HobbyList.example.HobbyList]': DEBUG
