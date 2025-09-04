@@ -6,6 +6,8 @@ import LandingPage from './pages/LandingPage'
 import VerificationPage from './pages/VerificationPage';
 import PasswordResetForm from './pages/PasswordResetForm';
 import PasswordReset from './pages/PasswordReset';
+import HomePage from './pages/HomePage';
+import UploadPhoto from './pages/UploadPhoto';
 
 function App() {
   return (
@@ -21,6 +23,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verification" element={<VerificationPage />} />
         <Route path="/password-reset" element={<PasswordReset />} />
+        <Route path="/reset-password" element={<PasswordResetForm />} />
+        <Route path="/home-page" element={<HomePage />} />
+        <Route path="/upload-photo" element={<UploadPhoto />} />
         <Route path="/reset-password" element={<PasswordResetForm />} />
       </Routes>
     </div>
