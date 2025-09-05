@@ -35,7 +35,6 @@ const UploadPhoto: React.FC = () => {
         filename,
         contentType: file.type,
       };
-      console.log(getURLPayload);
       // 1️⃣ Request presigned URL
       const presignResponse = await fetch("http://localhost:8080/api/photos/get-upload-url", {
         method: "POST",
