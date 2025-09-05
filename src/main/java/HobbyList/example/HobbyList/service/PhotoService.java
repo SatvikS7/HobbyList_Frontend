@@ -12,11 +12,7 @@ public class PhotoService {
     public PhotoService(PhotoRepository photoRepository) {
         this.photoRepository = photoRepository;
     }
-
-    public List<Photo> getAllPhotosByUser(User user) {
-        return photoRepository.findByUser(user);
-    }
-
+    
     public Photo getPhotoById(Long id) {
         return photoRepository.findById(id).orElse(null);
     }

@@ -26,6 +26,8 @@ public class Photo {
     @PrimaryKeyJoinColumn
     private User user;
 
+    public Photo() {}
+
     public Photo(String topic, String imageUrl, User user, LocalDateTime uploadDate) {
         this.topic = topic;
         this.imageUrl = imageUrl;

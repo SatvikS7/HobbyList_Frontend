@@ -9,9 +9,6 @@ import java.util.List;
 
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
-    // Find all photos by a specific user
-    List<Photo> findByUser(User user);
-
     // Find all photos by user ID
     List<Photo> findByUserId(Long userId);
 

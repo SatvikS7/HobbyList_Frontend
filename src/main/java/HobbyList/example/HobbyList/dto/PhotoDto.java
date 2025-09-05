@@ -10,4 +10,8 @@ public record PhotoDto(
     String contentType,
     String description,
     LocalDateTime uploadDate
-) {}
+) {
+    public PhotoDto(String topic, String imageUrl, Long size, LocalDateTime uploadDate) {
+        this(topic, imageUrl, null, size, null, null, uploadDate);
+    }
+}

@@ -16,7 +16,6 @@ import HobbyList.example.HobbyList.model.Photo;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
-import HobbyList.example.HobbyList.service.JwtService;
 import HobbyList.example.HobbyList.service.S3Service;
 import jakarta.validation.Valid;
 
@@ -32,32 +31,35 @@ public class PhotoController {
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final S3Service s3Service;
-    private final JwtService jwtService;
 
-    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service, JwtService jwtService) {
+    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service) {
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.s3Service = s3Service;
-        this.jwtService = jwtService;
     }
 
-    /*
+    
     @GetMapping
     public ResponseEntity<List<PhotoDto>> getAllPhotos(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Photo> photos = photoRepository.findByUser(user);
+        List<Photo> photos = photoRepository.findByUserId(user.getId());
         List<PhotoDto> photoDtos = photos.stream()
-                .map(photo -> new PhotoDto(photo.getTopic(), photo.getImageUrl(), photo.getUploadDate()))
+                .map(photo -> {
+                    String bucketName = "hobbylist-photos";
+                    String imageURL = photo.getImageUrl();
+                    String key = imageURL.substring(imageURL.indexOf("photos/"));
+                    String presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
+                    return new PhotoDto(photo.getTopic(), presignedUrl, photo.getSize(), photo.getUploadDate());
+                })
                 .toList();
         return ResponseEntity.ok(photoDtos);
-    }*/
+    }
 
     @PostMapping("/get-upload-url")
     public ResponseEntity<String> generateUploadUrl(@RequestBody PresignRequest presignRequest, Authentication authentication) {
-        System.out.println("AUTH EMAIL: " + authentication.getName());
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

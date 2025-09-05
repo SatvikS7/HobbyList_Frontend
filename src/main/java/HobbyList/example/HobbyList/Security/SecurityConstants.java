@@ -8,7 +8,8 @@ public final class SecurityConstants {
         "/api/auth/request-password-reset",
         "/api/auth/reset-password",
         "/api/photos/get-upload-url",
-        "/api/photos/save-url"
+        "/api/photos/save-url",
+        "/api/photos"
     };
 
     private SecurityConstants() {}
