@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from "../components/AuthContext";
+
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 function LoginPage() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -26,6 +29,7 @@ function LoginPage() {
             const data = await response.json();
             console.log("Login successful:", data);
             sessionStorage.setItem("jwt", data.token);
+            login();
             alert("Login successful!");
             navigate('/home-page')
         } catch (error) {
