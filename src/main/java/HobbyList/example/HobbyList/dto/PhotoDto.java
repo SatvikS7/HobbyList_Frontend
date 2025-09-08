@@ -11,7 +11,7 @@ public record PhotoDto(
     String description,
     LocalDateTime uploadDate
 ) {
-    public PhotoDto(String topic, String imageUrl, Long size, LocalDateTime uploadDate) {
-        this(topic, imageUrl, null, size, null, null, uploadDate);
+    public PhotoDto(String topic, String imageUrl, String description, LocalDateTime uploadDate) {
+        this(topic, imageUrl, null, null, null, description, uploadDate);
     }
 }

@@ -1,7 +1,7 @@
 package HobbyList.example.HobbyList.controller;
 
-import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import HobbyList.example.HobbyList.dto.PhotoDto;
 import HobbyList.example.HobbyList.dto.PresignRequest;
+import HobbyList.example.HobbyList.dto.ProfileDto;
 import HobbyList.example.HobbyList.model.Photo;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
@@ -23,49 +24,54 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
-@RequestMapping("/api/photos")
-public class PhotoController {
+@RequestMapping("/api/profile")
+public class ProfileController {
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final S3Service s3Service;
 
-    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service) {
+    public ProfileController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service) {
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.s3Service = s3Service;
     }
 
-    
     @GetMapping
-    public ResponseEntity<List<PhotoDto>> getAllPhotos(Authentication authentication) {
+    public ResponseEntity<?> getProfile(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Photo> photos = photoRepository.findByUserIdAndIsProfileFalse(user.getId());
-        List<PhotoDto> photoDtos = photos.stream()
-                .map(photo -> {
-                    String bucketName = "hobbylist-photos";
-                    String imageURL = photo.getImageUrl();
-                    String key = imageURL.substring(imageURL.indexOf("photos/"));
-                    String presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
-                    return new PhotoDto(photo.getTopic(), presignedUrl, photo.getDescription(), photo.getUploadDate());
-                })
-                .toList();
-        return ResponseEntity.ok(photoDtos);
+
+        Optional<Photo> profilePhoto = photoRepository.findByUserIdAndIsProfileTrue(user.getId());
+        String presignedUrl = null;
+        System.out.println(profilePhoto.isPresent());
+        if (profilePhoto.isPresent()) {
+            String bucketName = "hobbylist-photos";
+            String imageURL = profilePhoto.get().getImageUrl();
+            String key = imageURL.substring(imageURL.indexOf("profile/"));
+            presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
+        }
+        return ResponseEntity.ok(new ProfileDto(presignedUrl, user.getDescription()));
     }
 
     @PostMapping("/get-upload-url")
-    public ResponseEntity<String> generateUploadUrl(@RequestBody PresignRequest presignRequest, Authentication authentication) {
+    public ResponseEntity<?> generateUploadUrl(@Valid @RequestBody PresignRequest presignRequest, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        // Delete existing profile picture if exists from photo repository
+        Optional<Photo> existingProfilePic = photoRepository.findByUserIdAndIsProfileTrue(user.getId());
+        if (existingProfilePic.isPresent()) {
+            Photo oldPhoto = existingProfilePic.get();
+            photoRepository.delete(oldPhoto);
+        }
         String bucketName = "hobbylist-photos"; 
-        String key = "photos/" + user.getId() + "/" + UUID.randomUUID() + "-" + presignRequest.filename(); // Define your key structure
+        String key = "profile/" + user.getId() + "-" + presignRequest.filename();
         String uploadUrl = s3Service.generateUploadUrl(bucketName, key, presignRequest.contentType());
 
         return ResponseEntity.ok(uploadUrl);
@@ -78,14 +84,24 @@ public class PhotoController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Photo photo = new Photo(photoDto.topic(), photoDto.imageUrl(), user, photoDto.uploadDate());
-        photo.setFilename(photoDto.filename());
-        photo.setSize(photoDto.size());
-        photo.setContentType(photoDto.contentType());
+        Photo photo = new Photo(photoDto.imageUrl(), user, 
+                    photoDto.uploadDate(), photoDto.filename(), 
+                    photoDto.size(), photoDto.contentType());
         photoRepository.save(photo);
 
         return ResponseEntity.ok("Photo metadata saved successfully");
     }
-    
-    
+
+    @PostMapping("/update-description")
+    public ResponseEntity<String> updateDescription(@RequestBody String newDescription, Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        user.setDescription(newDescription);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Profile description updated successfully");
+    }
 }

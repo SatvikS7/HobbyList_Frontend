@@ -9,7 +9,11 @@ public final class SecurityConstants {
         "/api/auth/reset-password",
         "/api/photos/get-upload-url",
         "/api/photos/save-url",
-        "/api/photos"
+        "/api/photos",
+        "/api/profile",
+        "/api/profile/get-upload-url",
+        "/api/profile/save-url",
+        "/api/profile/update-description",
     };
 
     private SecurityConstants() {}

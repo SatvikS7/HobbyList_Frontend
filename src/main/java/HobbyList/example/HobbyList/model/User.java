@@ -35,12 +35,16 @@ public class User implements UserDetails{
 
     private String role;
     private boolean active = false;
+    private String profileURL;
+    private String description;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos;
 
     @OneToOne
     private VerificationToken token;
+
+
 
     public User() {}
 

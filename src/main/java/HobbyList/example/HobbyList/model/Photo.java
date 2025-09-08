@@ -21,6 +21,7 @@ public class Photo {
     private Long size;
     private String contentType;
     private Boolean isActive = true;
+    private Boolean isProfile = false;
 
     @ManyToOne
     @PrimaryKeyJoinColumn
@@ -33,5 +34,17 @@ public class Photo {
         this.imageUrl = imageUrl;
         this.user = user;
         this.uploadDate = uploadDate;
+    }
+
+    public Photo(String imageUrl, User user, LocalDateTime uploadDate, String filename, Long size, String contentType) {
+        this.imageUrl = imageUrl;
+        this.user = user;
+        this.uploadDate = uploadDate;
+        this.filename = filename;
+        this.size = size;
+        this.contentType = contentType;
+        this.description = null;    
+        this.topic = "Profile Picture";
+        this.isProfile = true;
     }
 }
