@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
+import EditProfileModal from "../components/EditProfileModal.tsx";
 
 type PhotoDto = {
   topic: string;
   imageUrl: string;
-  size: number;
+  description: string;
   uploadDate: string;
+};
+
+type UserProfile = {
+  profileURL: string | null;
+  description: string;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -14,37 +20,45 @@ const ProfilePage: React.FC = () => {
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>("All");
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true); 
+
 
   useEffect(() => {
-    const fetchPhotos = async () => {
+    const fetchData = async () => {
       try {
-        const token = sessionStorage.getItem("jwt"); 
-        const res = await fetch(`${API_BASE}/photos`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const token = sessionStorage.getItem("jwt");
+        const [photosRes, profileRes] = await Promise.all([
+          fetch(`${API_BASE}/photos`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE}/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch photos");
-        }
+        if (!photosRes.ok) throw new Error("Failed to fetch photos");
+        if (!profileRes.ok) throw new Error("Failed to fetch profile");
 
-        const data: PhotoDto[] = await res.json();
-        setPhotos(data);
-        setFilteredPhotos(data);
+        const photosData: PhotoDto[] = await photosRes.json();
+        const profileData: UserProfile = await profileRes.json();
 
-        // Extract unique tags from the photos
-        const uniqueTags = Array.from(new Set(data.map((photo) => photo.topic)));
-        setTags(uniqueTags);
+        setPhotos(photosData);
+        setFilteredPhotos(photosData);
+        setTags(Array.from(new Set(photosData.map((photo) => photo.topic))));
+        setProfile(profileData);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchPhotos();
+    fetchData();
   }, []);
 
-  // Update filtered photos when selectedTag changes
+
   useEffect(() => {
     if (selectedTag === "All") {
       setFilteredPhotos(photos);
@@ -53,47 +67,74 @@ const ProfilePage: React.FC = () => {
     }
   }, [selectedTag, photos]);
 
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4 color">My Photos</h1>
+  if (loading) {
+    return <div className="loading-screen">Loading profile...</div>;
+  }
 
-      {/* Tag Dropdown */}
-      <div className="mb-6">
-        <label htmlFor="tagFilter" className="mr-2 font-medium">
-          Filter by tag:
-        </label>
+  return (
+    <div className="profile-container">
+      {/* Profile Section */}
+      <div className="profile-header">
+        <img
+          src={profile?.profileURL || "../src/assets/default-avatar.png"}
+          alt="Profile"
+          className="profile-picture"
+        />
+        <div className="profile-info">
+          <p className="profile-description">
+            {profile?.description || "No description set yet."}
+          </p>
+          <button
+            className="edit-profile-button"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit Profile
+          </button>
+          {isEditing && profile && (
+            <EditProfileModal
+              profile={{ profileURL: profile.profileURL, description: profile.description }}
+              onClose={() => setIsEditing(false)}
+              onSave={(updatedProfile) => {
+                setProfile({
+                  profileURL: updatedProfile.profileURL,
+                  description: updatedProfile.description,
+                });
+                setIsEditing(false);
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      <hr className="divider" />
+
+      {/* Photos Section */}
+      <h1 className="photos-title">My Photos</h1>
+      <div className="filter-container">
+        <label htmlFor="tagFilter" className="filter-label">Filter by tag:</label>
         <select
           id="tagFilter"
-          className="border rounded px-2 py-1"
+          className="filter-dropdown"
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
         >
           <option value="All">All</option>
           {tags.map((tag) => (
-            <option key={tag} value={tag}>
-              {tag}
-            </option>
+            <option key={tag} value={tag}>{tag}</option>
           ))}
         </select>
       </div>
 
-      {/* Photo Grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="photo-grid">
         {filteredPhotos.map((photo, index) => (
-          <div
-            key={index}
-            className="rounded-xl shadow-md overflow-hidden border border-gray-200"
-          >
-            <img
-              src={photo.imageUrl}
-              alt={photo.topic}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-2 text-sm">
-              <p className="font-medium">{photo.topic}</p>
-              <p className="text-gray-500">
+          <div key={index} className="photo-card">
+            <img src={photo.imageUrl} alt={photo.topic} className="photo-image" />
+            <div className="photo-details">
+              <p className="photo-topic">{photo.topic}</p>
+              <p className="photo-date">
                 {new Date(photo.uploadDate).toLocaleDateString()}
               </p>
+              <p>{photo.description}</p>
             </div>
           </div>
         ))}

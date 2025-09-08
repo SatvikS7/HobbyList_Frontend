@@ -12,10 +12,10 @@ const Header = () => {
         <h1>HobbyList</h1>
       </Link>
       {isLoggedIn ? (
-        <>
+        <div className="header-buttons">
           <ProfileButton />
           <LogoutButton />
-        </>
+        </div>
       ) : null}
     </div>
   );
