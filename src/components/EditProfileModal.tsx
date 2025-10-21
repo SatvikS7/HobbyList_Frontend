@@ -3,12 +3,13 @@ import React, { useState } from "react";
 type ProfileDto = {
     profileURL: string | null;
     description: string;
+    username: string;
 }
 
 type EditProfileModalProps = {
-  profile: { profileURL: string | null; description: string } | ProfileDto | null;
+  profile: { profileURL: string | null; description: string; username: string } | ProfileDto | null;
   onClose: () => void;
-  onSave: (updatedProfile: { profileURL: string | null; description: string }) => void;
+  onSave: (updatedProfile: { profileURL: string | null; description: string; username: string }) => void;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -22,6 +23,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     profile?.description || ""
   );
   const [newFile, setNewFile] = useState<File | null>(null);
+  const [newUsername, setNewUsername] = useState(profile?.username || "");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -73,14 +75,24 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         });
       }
 
-      // Update description
-      await fetch(`${API_BASE}/profile/update-description`, {
+      // Clean and update description
+
+      //const cleanedDescription = newDescription
+      // .replace(/[\n\r\t]+/g, " ") 
+      //  .replace(/\s+/g, " ")        
+      //  .trim(); 
+
+      await fetch(`${API_BASE}/profile/update-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(newDescription),
+        body: JSON.stringify({
+          profileURL: profile?.profileURL || null,
+          description: newDescription,
+          username: newUsername,
+        }),
       });
 
       // Fetch the updated profile data
@@ -120,6 +132,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
             placeholder="Update your description"
+          />
+          <textarea
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+            placeholder="Update your username"
           />
 
           <div className="modal-actions">

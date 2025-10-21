@@ -11,6 +11,7 @@ type PhotoDto = {
 type UserProfile = {
   profileURL: string | null;
   description: string;
+  username: string;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -81,6 +82,9 @@ const ProfilePage: React.FC = () => {
           className="profile-picture"
         />
         <div className="profile-info">
+          <h1 className="profile-description">
+            {profile?.username || "Username"}
+          </h1>
           <p className="profile-description">
             {profile?.description || "No description set yet."}
           </p>
@@ -92,12 +96,13 @@ const ProfilePage: React.FC = () => {
           </button>
           {isEditing && profile && (
             <EditProfileModal
-              profile={{ profileURL: profile.profileURL, description: profile.description }}
+              profile={{ profileURL: profile.profileURL, description: profile.description, username: profile.username }}
               onClose={() => setIsEditing(false)}
               onSave={(updatedProfile) => {
                 setProfile({
                   profileURL: updatedProfile.profileURL,
                   description: updatedProfile.description,
+                  username: updatedProfile.username,
                 });
                 setIsEditing(false);
               }}

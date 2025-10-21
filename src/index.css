@@ -229,6 +229,10 @@ button:focus-visible {
   max-width: 90%;
 }
 
+.modal h2 {
+  color: black;
+}
+
 .modal-content {
   display: flex;
   flex-direction: column;

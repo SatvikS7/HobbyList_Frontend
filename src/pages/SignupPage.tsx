@@ -8,6 +8,7 @@ function SignupPage() {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [username, setUsername] = useState("");
 
     const handleSignup = async(e: React.FormEvent) => {
         e.preventDefault();
@@ -17,7 +18,7 @@ function SignupPage() {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, username }),
             });
 
             if (!response.ok) {
@@ -43,6 +44,11 @@ function SignupPage() {
                         Email:
                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} name="email" required />
                         </label>
+                    <br />
+                    <label>
+                        Username:
+                        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} name="username" required />
+                    </label>
                     <br />
                     <label>
                         Password:
