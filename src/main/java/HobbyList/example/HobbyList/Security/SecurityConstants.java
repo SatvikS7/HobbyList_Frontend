@@ -13,7 +13,7 @@ public final class SecurityConstants {
         "/api/profile",
         "/api/profile/get-upload-url",
         "/api/profile/save-url",
-        "/api/profile/update-description",
+        "/api/profile/update-profile",
     };
 
     private SecurityConstants() {}

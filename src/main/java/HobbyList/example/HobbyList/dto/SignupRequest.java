@@ -9,6 +9,9 @@ public record SignupRequest(
     String email,
 
     @NotBlank(message = "Password is required")
-    String password
+    String password,
+
+    @NotBlank(message = "Username is required")
+    String username
 
 ) {}

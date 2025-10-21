@@ -47,14 +47,13 @@ public class ProfileController {
 
         Optional<Photo> profilePhoto = photoRepository.findByUserIdAndIsProfileTrue(user.getId());
         String presignedUrl = null;
-        System.out.println(profilePhoto.isPresent());
         if (profilePhoto.isPresent()) {
             String bucketName = "hobbylist-photos";
             String imageURL = profilePhoto.get().getImageUrl();
             String key = imageURL.substring(imageURL.indexOf("profile/"));
             presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
         }
-        return ResponseEntity.ok(new ProfileDto(presignedUrl, user.getDescription()));
+        return ResponseEntity.ok(new ProfileDto(presignedUrl, user.getDescription(), user.getDisplayName()));
     }
 
     @PostMapping("/get-upload-url")
@@ -92,16 +91,17 @@ public class ProfileController {
         return ResponseEntity.ok("Photo metadata saved successfully");
     }
 
-    @PostMapping("/update-description")
-    public ResponseEntity<String> updateDescription(@RequestBody String newDescription, Authentication authentication) {
+    @PostMapping("/update-profile")
+    public ResponseEntity<String> updateProfile(@RequestBody ProfileDto profileDto, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        user.setDescription(newDescription);
+        user.setDescription(profileDto.description());
+        user.setDisplayName(profileDto.username());
         userRepository.save(user);
 
-        return ResponseEntity.ok("Profile description updated successfully");
+        return ResponseEntity.ok("Profile updated successfully");
     }
 }

@@ -60,6 +60,7 @@ public class AuthController {
         newUser.setEmail(request.email());
         newUser.setPassword(passwordEncoder.encode(request.password()));
         newUser.setRole("ROLE_USER");
+        newUser.setDisplayName(request.username());
         userRepository.save(newUser);
         eventPublisher.publishEvent(new VerificationEmailEvent(newUser, "EMAIL_VERIFICATION"));
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));

@@ -32,7 +32,7 @@ public class JwtService {
         }
     }
 
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
     
@@ -67,17 +67,17 @@ public class JwtService {
         }
     }
 
-    public Boolean validateToken(String token, String username) {
+    public Boolean validateToken(String token, String email) {
         try {
-            final String tokenUsername = extractUsername(token);
-            return (tokenUsername.equals(username) && !isTokenExpired(token));
+            final String tokenEmail = extractEmail(token);
+            return (tokenEmail.equals(email) && !isTokenExpired(token));
         } catch (Exception e) {
             return false;
         }
     }
 
     public boolean isTokenValid(String token, User user) {
-        final String username = extractUsername(token);
-        return (username.equals(user.getEmail()) && !isTokenExpired(token));
+        final String email = extractEmail(token);
+        return (email.equals(user.getEmail()) && !isTokenExpired(token));
     }
 }
