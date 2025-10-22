@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -53,7 +54,7 @@ public class ProfileController {
             String key = imageURL.substring(imageURL.indexOf("profile/"));
             presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
         }
-        return ResponseEntity.ok(new ProfileDto(presignedUrl, user.getDescription(), user.getDisplayName()));
+        return ResponseEntity.ok(new ProfileDto(presignedUrl, user.getDescription(), user.getDisplayName(), user.isPrivate(), user.getHobbies()));
     }
 
     @PostMapping("/get-upload-url")
@@ -91,15 +92,29 @@ public class ProfileController {
         return ResponseEntity.ok("Photo metadata saved successfully");
     }
 
-    @PostMapping("/update-profile")
+    @PatchMapping("/update-profile")
     public ResponseEntity<String> updateProfile(@RequestBody ProfileDto profileDto, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        user.setDescription(profileDto.description());
-        user.setDisplayName(profileDto.username());
+        if(profileDto.description() != null) {
+            user.setDescription(profileDto.description());
+        }
+
+        if(profileDto.username() != null) {
+            user.setDisplayName(profileDto.username());
+        }
+
+        if(profileDto.isPrivate() != user.isPrivate()) {
+            user.setPrivate(profileDto.isPrivate());
+        }
+
+        if(profileDto.hobbies() != null) {
+            user.setHobbies(profileDto.hobbies());
+        }
+
         userRepository.save(user);
 
         return ResponseEntity.ok("Profile updated successfully");

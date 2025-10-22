@@ -60,7 +60,6 @@ public class AuthController {
         newUser.setEmail(request.email());
         newUser.setPassword(passwordEncoder.encode(request.password()));
         newUser.setRole("ROLE_USER");
-        newUser.setDisplayName(request.username());
         userRepository.save(newUser);
         eventPublisher.publishEvent(new VerificationEmailEvent(newUser, "EMAIL_VERIFICATION"));
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
@@ -83,8 +82,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "Invalid email or password"));
         }
+        boolean newAcct = user.isNewAccount();
+        user.setOld();
+        userRepository.save(user);
         String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(Map.of("token", token));    
+        return ResponseEntity.ok(Map.of("token", token, "newAccount", newAcct));
     }
 
     @GetMapping("/verify")

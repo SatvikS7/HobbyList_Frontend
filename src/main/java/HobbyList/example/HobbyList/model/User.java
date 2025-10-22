@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "users")
@@ -25,7 +26,7 @@ public class User implements UserDetails{
     private String lastname;
 
     @Column(nullable = false)
-    private String username;
+    private String username = "dummy";
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -37,6 +38,14 @@ public class User implements UserDetails{
     private boolean active = false;
     private String profileURL;
     private String description;
+
+    @Column(nullable = false)
+    private boolean isPrivate = true;
+
+    @Column(nullable = false)
+    private boolean newAccount = true;
+
+    private ArrayList<String> hobbies = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos;
@@ -83,6 +92,10 @@ public class User implements UserDetails{
 
     public void setDisplayName(String username) {
         this.username = username;
+    }
+
+    public void setOld() {
+        this.newAccount = false;
     }
 
     @Override
