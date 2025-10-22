@@ -5,10 +5,10 @@ public record ProfileDto(
         String profileURL,
         String description,
         String username,
-        boolean isPrivate,
+        Boolean isPrivate,
         ArrayList<String> hobbies
 ) {
-    public ProfileDto(String profileURL, String description, String username, boolean isPrivate, ArrayList<String> hobbies) {
+    public ProfileDto(String profileURL, String description, String username, Boolean isPrivate, ArrayList<String> hobbies) {
         this.profileURL = profileURL;
         this.description = description;
         this.username = username;

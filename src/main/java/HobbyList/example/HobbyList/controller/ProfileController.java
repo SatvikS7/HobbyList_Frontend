@@ -18,6 +18,7 @@ import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
 import HobbyList.example.HobbyList.service.S3Service;
+import HobbyList.example.HobbyList.mapper.UserMapper;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,11 +33,13 @@ public class ProfileController {
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final S3Service s3Service;
+    private final UserMapper userMapper;
 
-    public ProfileController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service) {
+    public ProfileController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.s3Service = s3Service;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
@@ -99,22 +102,8 @@ public class ProfileController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        if(profileDto.description() != null) {
-            user.setDescription(profileDto.description());
-        }
-
-        if(profileDto.username() != null) {
-            user.setDisplayName(profileDto.username());
-        }
-
-        if(profileDto.isPrivate() != user.isPrivate()) {
-            user.setPrivate(profileDto.isPrivate());
-        }
-
-        if(profileDto.hobbies() != null) {
-            user.setHobbies(profileDto.hobbies());
-        }
-
+        // Use UserMapper to update user entity from non-null DTO fields
+        userMapper.updateUserFromDto(profileDto, user);
         userRepository.save(user);
 
         return ResponseEntity.ok("Profile updated successfully");
