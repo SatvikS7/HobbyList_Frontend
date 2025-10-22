@@ -244,3 +244,11 @@ button:focus-visible {
   border-radius: 50%;
 }
 
+.privacy-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: #000;
+}
+

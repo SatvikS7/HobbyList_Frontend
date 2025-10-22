@@ -31,7 +31,11 @@ function LoginPage() {
             sessionStorage.setItem("jwt", data.token);
             login();
             alert("Login successful!");
-            navigate('/home-page')
+            if(data.newAccount) {
+                navigate('/onboarding-page')
+            } else {
+                navigate('/home-page')
+            }
         } catch (error) {
             console.error("Error logging in:", error);
             alert("Login failed. Please try again.");

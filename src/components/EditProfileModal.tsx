@@ -4,12 +4,14 @@ type ProfileDto = {
     profileURL: string | null;
     description: string;
     username: string;
+    isPrivate: boolean;
+    hobbies: string[];
 }
 
 type EditProfileModalProps = {
-  profile: { profileURL: string | null; description: string; username: string } | ProfileDto | null;
+  profile: { profileURL: string | null; description: string; username: string; isPrivate: boolean; hobbies: string[] } | ProfileDto | null;
   onClose: () => void;
-  onSave: (updatedProfile: { profileURL: string | null; description: string; username: string }) => void;
+  onSave: (updatedProfile: { profileURL: string | null; description: string; username: string; isPrivate: boolean; hobbies: string[] }) => void;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -24,6 +26,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   );
   const [newFile, setNewFile] = useState<File | null>(null);
   const [newUsername, setNewUsername] = useState(profile?.username || "");
+  const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -75,25 +78,36 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         });
       }
 
-      // Clean and update description
+      const updates: Record<string, any> = {};
 
-      //const cleanedDescription = newDescription
-      // .replace(/[\n\r\t]+/g, " ") 
-      //  .replace(/\s+/g, " ")        
-      //  .trim(); 
+      if (newUsername && newUsername !== profile?.username) {
+        updates.username = newUsername.trim();
+      }
 
-      await fetch(`${API_BASE}/profile/update-profile`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          profileURL: profile?.profileURL || null,
-          description: newDescription,
-          username: newUsername,
-        }),
-      });
+      if (newDescription && newDescription !== profile?.description) {
+        // Clean up invisible or multiline chars
+        const cleanedDescription = newDescription
+          .replace(/\s+/g, " ")
+          .trim();
+        updates.description = cleanedDescription;
+      }
+      if (isPrivate !== profile?.isPrivate) {
+        updates.isPrivate = isPrivate;
+      }
+      console.log(updates);
+
+      if (Object.keys(updates).length > 0) {
+        const res = await fetch(`${API_BASE}/profile/update-profile`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updates),
+        });
+
+        if (!res.ok) throw new Error("Failed to update profile");
+      }
 
       // Fetch the updated profile data
       const updatedProfile = await fetch(`${API_BASE}/profile`, {
@@ -138,6 +152,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             onChange={(e) => setNewUsername(e.target.value)}
             placeholder="Update your username"
           />
+          <div className="privacy-toggle">
+            <label>
+              Private Profile
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+              />
+            </label>
+          </div>
 
           <div className="modal-actions">
             <button onClick={onClose} className="cancel-button">

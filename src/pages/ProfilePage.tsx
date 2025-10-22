@@ -12,6 +12,8 @@ type UserProfile = {
   profileURL: string | null;
   description: string;
   username: string;
+  isPrivate: boolean;
+  hobbies: string[];
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -44,7 +46,7 @@ const ProfilePage: React.FC = () => {
 
         const photosData: PhotoDto[] = await photosRes.json();
         const profileData: UserProfile = await profileRes.json();
-
+        console.log("Fetched hobbies:", profileData.hobbies);
         setPhotos(photosData);
         setFilteredPhotos(photosData);
         setTags(Array.from(new Set(photosData.map((photo) => photo.topic))));
@@ -96,13 +98,15 @@ const ProfilePage: React.FC = () => {
           </button>
           {isEditing && profile && (
             <EditProfileModal
-              profile={{ profileURL: profile.profileURL, description: profile.description, username: profile.username }}
+              profile={{ profileURL: profile.profileURL, description: profile.description, username: profile.username, isPrivate: profile.isPrivate, hobbies: profile.hobbies }}
               onClose={() => setIsEditing(false)}
               onSave={(updatedProfile) => {
                 setProfile({
                   profileURL: updatedProfile.profileURL,
                   description: updatedProfile.description,
                   username: updatedProfile.username,
+                  isPrivate: updatedProfile.isPrivate,
+                  hobbies: updatedProfile.hobbies,
                 });
                 setIsEditing(false);
               }}

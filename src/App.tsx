@@ -11,6 +11,7 @@ import UploadPhoto from './pages/UploadPhoto';
 import { AuthProvider } from './components/AuthContext';
 import Header from './components/Header';
 import ProfilePage from './pages/ProfilePage';
+import Onboarding from './pages/OnboardingPage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/upload-photo" element={<UploadPhoto />} />
           <Route path="/reset-password" element={<PasswordResetForm />} />
           <Route path="/profile-page" element={<ProfilePage />} />
+          <Route path="/onboarding-page" element={<Onboarding />} />
         </Routes>
       </div>
     </AuthProvider>
