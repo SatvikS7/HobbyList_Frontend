@@ -75,30 +75,35 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="profile-container">
+    <div className="p-6 max-w-6xl mx-auto">
       {/* Profile Section */}
-      <div className="profile-header">
+      <div className="flex items-center gap-6 mt-16 mb-4">
         <img
           src={profile?.profileURL || "../src/assets/default-avatar.png"}
           alt="Profile"
-          className="profile-picture"
+          className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
         />
-        <div className="profile-info">
-          <h1 className="profile-description">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-lg text-gray-800 font-medium">
             {profile?.username || "Username"}
           </h1>
-          <p className="profile-description">
-            {profile?.description || "No description set yet."}
-          </p>
+          <p className="text-gray-700">{profile?.description || "No description set yet."}</p>
           <button
-            className="edit-profile-button"
+            className="px-4 py-2 rounded-md bg-[#b99547] text-white hover:bg-[#a07f36]"
             onClick={() => setIsEditing(true)}
           >
             Edit Profile
           </button>
+
           {isEditing && profile && (
             <EditProfileModal
-              profile={{ profileURL: profile.profileURL, description: profile.description, username: profile.username, isPrivate: profile.isPrivate, hobbies: profile.hobbies }}
+              profile={{
+                profileURL: profile.profileURL,
+                description: profile.description,
+                username: profile.username,
+                isPrivate: profile.isPrivate,
+                hobbies: profile.hobbies,
+              }}
               onClose={() => setIsEditing(false)}
               onSave={(updatedProfile) => {
                 setProfile({
@@ -115,15 +120,17 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      <hr className="divider" />
+      <hr className="my-6 border-t border-gray-300" />
 
       {/* Photos Section */}
-      <h1 className="photos-title">My Photos</h1>
-      <div className="filter-container">
-        <label htmlFor="tagFilter" className="filter-label">Filter by tag:</label>
+      <h1 className="text-2xl font-bold mb-4 text-gray-900">My Photos</h1>
+      <div className="mb-6 flex items-center gap-2">
+        <label htmlFor="tagFilter" className="font-medium text-gray-800">
+          Filter by tag:
+        </label>
         <select
           id="tagFilter"
-          className="filter-dropdown"
+          className="border border-gray-300 rounded px-2 py-1 text-black"
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
         >
@@ -134,15 +141,17 @@ const ProfilePage: React.FC = () => {
         </select>
       </div>
 
-      <div className="photo-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {filteredPhotos.map((photo, index) => (
-          <div key={index} className="photo-card">
-            <img src={photo.imageUrl} alt={photo.topic} className="photo-image" />
-            <div className="photo-details">
-              <p className="photo-topic">{photo.topic}</p>
-              <p className="photo-date">
-                {new Date(photo.uploadDate).toLocaleDateString()}
-              </p>
+          <div key={index} className="rounded-xl shadow-md overflow-hidden border border-gray-200">
+            <img
+              src={photo.imageUrl}
+              alt={photo.topic}
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-2 text-sm text-gray-800">
+              <p className="font-medium">{photo.topic}</p>
+              <p className="text-gray-500">{new Date(photo.uploadDate).toLocaleDateString()}</p>
               <p>{photo.description}</p>
             </div>
           </div>

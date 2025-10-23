@@ -43,25 +43,48 @@ function LoginPage() {
     };
 
     return (
-        <div>
-            <div className="signLog-container">
-                <h1>Login</h1>
-                <form onSubmit={handleLogin}>
-                    <label>
-                        Email:
-                        <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} name="email" required />
-                    </label>
-                    <br />
-                    <label>
-                        Password:
-                        <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} name="password" required />
-                    </label>
-                    <br />
-                    <button type="submit">Login</button>
-                </form>
-            </div>
+    <div className="h-screen flex justify-center items-center bg-white">
+        <div className="flex flex-col items-center justify-center border-2 border-black rounded-[5%] bg-gradient-to-br from-[#fadd9e] to-[#daba76] p-8 w-full max-w-md">
+        <h1 className="text-3xl font-bold text-[#000000] mb-6">Login</h1>
+
+        <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full">
+            <label className="flex flex-col text-black font-medium">
+            Email:
+            <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                name="email"
+                required
+                className="mt-1 p-2 border border-white rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
+            />
+            </label>
+
+            <label className="flex flex-col text-black font-medium">
+            Password:
+            <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                name="password"
+                required
+                className="mt-1 p-2 border border-white rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
+            />
+            </label>
+
+            <button
+            type="submit"
+            className="mt-4 px-4 py-2 rounded-lg bg-[#c77903] text-white font-semibold hover:bg-[#b36b02] transition-colors duration-200"
+            >
+            Login
+            </button>
+        </form>
         </div>
+    </div>
     )
+
 }
 
 export default LoginPage;

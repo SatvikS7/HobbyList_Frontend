@@ -2,34 +2,17 @@ import { Link } from "react-router-dom";
 
 const HomePage = () => {
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: "2rem",
-      }}
-    >
-      <div style={{ display: "flex", gap: "1.5rem" }}>
-        <Link to="/upload-photo">
-          <button
-            style={{
-              padding: "1rem 2rem",
-              fontSize: "1.1rem",
-              borderRadius: "8px",
-              border: "none",
-              color: "red",
-              cursor: "pointer",
-            }}
-          >
-            Upload Photo
-          </button>
-        </Link>
-      </div>
+  <div className="h-screen flex flex-col justify-center items-center gap-8 bg-white">
+    <div className="flex gap-6">
+      <Link to="/upload-photo">
+        <button className="px-8 py-4 text-lg font-medium rounded-lg bg-gradient-to-r from-[#fadd9e] to-[#fadd9e] text-[#c77903] shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-200">
+          Upload Photo
+        </button>
+      </Link>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default HomePage;

@@ -102,11 +102,14 @@ const UploadPhoto: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto bg-white rounded-2xl shadow-lg">
-      <h2 className="text-xl font-bold mb-4">Upload a Photo</h2>
+    <div className="p-6 max-w-lg mx-auto bg-gradient-to-br from-[#fadd9e] to-[#daba76] rounded-[16px] shadow-lg">
+      <h2 className="text-xl font-bold mb-4 text-black">Upload a Photo</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Drop/Select box */}
-        <div className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer">
+        <label
+          htmlFor="fileInput"
+          className="block cursor-pointer border-2 border-dashed border-black rounded-lg p-6 text-center bg-white text-black"
+        >
           <input
             type="file"
             accept="image/*"
@@ -114,26 +117,15 @@ const UploadPhoto: React.FC = () => {
             className="hidden"
             id="fileInput"
           />
-          <label htmlFor="fileInput" className="cursor-pointer text-gray-600">
-            {file ? file.name : "Click or drag a photo here"}
-          </label>
-        </div>
-
-        {/* Filename */}
-        <input
-          type="text"
-          value={filename}
-          onChange={(e) => setFilename(e.target.value)}
-          placeholder="Filename"
-          className="w-full p-2 border rounded-lg"
-        />
+          {file ? file.name : "Click or drag a photo here"}
+        </label>
 
         {/* Description */}
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description"
-          className="w-full p-2 border rounded-lg"
+          className="w-full p-2 border border-black rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
         />
 
         {/* Topic */}
@@ -142,19 +134,20 @@ const UploadPhoto: React.FC = () => {
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="Topic"
-          className="w-full p-2 border rounded-lg"
+          className="w-full p-2 border border-black rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
         />
 
         <button
           type="submit"
           disabled={isUploading}
-          className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+          className="w-full py-2 rounded-lg bg-[#b99547] text-white font-semibold hover:bg-[#a07f36] transition-colors duration-200"
         >
           {isUploading ? "Uploading..." : "Upload"}
         </button>
       </form>
     </div>
   );
+
 };
 
 export default UploadPhoto;

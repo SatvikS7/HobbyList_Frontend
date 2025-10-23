@@ -71,80 +71,83 @@ const Onboarding: React.FC = () => {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-50">
-            <div className="relative w-full max-w-md overflow-hidden rounded-2xl shadow-md bg-white">
-            <AnimatePresence mode="wait">
-                {step === "username" && (
-                <motion.div
-                    key="username"
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{ duration: 0.5 }}
-                    className="p-6 flex flex-col items-center"
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-[#fadd9e] to-[#daba76]">
+        <div className="relative w-full max-w-md overflow-hidden rounded-2xl shadow-lg bg-white text-black">
+        <AnimatePresence mode="wait">
+            {step === "username" && (
+            <motion.div
+                key="username"
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.5 }}
+                className="p-8 flex flex-col items-center text-center"
+            >
+                <h2 className="text-2xl font-bold mb-6 text-[#b99547]">
+                Welcome! Choose your username
+                </h2>
+
+                <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter desired username"
+                className="border border-gray-300 focus:border-[#b99547] focus:ring-[#b99547] outline-none p-3 rounded-md w-full mb-6 text-black transition"
+                />
+
+                <button
+                onClick={handleUsernameSubmit}
+                className="w-full bg-[#b99547] hover:bg-[#a07f36] text-black font-medium px-4 py-2 rounded-md transition"
                 >
-                    <h2 className="text-2xl font-semibold mb-4">
-                    Welcome! Choose your username
-                    </h2>
-                    <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter desired username"
-                    className="border p-2 rounded w-full mb-4"
-                    />
-                    <button
-                    onClick={handleUsernameSubmit}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                    Continue
-                    </button>
-                </motion.div>
-                )}
+                Continue
+                </button>
+            </motion.div>
+            )}
 
-                {step === "hobbies" && (
-                <motion.div
-                    key="hobbies"
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{ duration: 0.5 }}
-                    className="p-6 flex flex-col items-center"
+            {step === "hobbies" && (
+            <motion.div
+                key="hobbies"
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.5 }}
+                className="p-8 flex flex-col items-center text-center"
+            >
+                <h2 className="text-2xl font-bold mb-6 text-[#b99547]">
+                Select your hobbies
+                </h2>
+
+                <div className="grid grid-cols-2 gap-3 mb-8 w-full">
+                {hobbies.map((hobby) => (
+                    <button
+                    key={hobby}
+                    onClick={() => toggleHobby(hobby)}
+                    className={`p-2 rounded-md border transition-colors ${
+                        selectedHobbies.includes(hobby)
+                        ? "bg-[#b99547] text-black border-[#a07f36]"
+                        : "bg-gray-100 hover:bg-gray-200 border-gray-300 text-black"
+                    }`}
+                    >
+                    {hobby}
+                    </button>
+                ))}
+                </div>
+
+                <button
+                onClick={handleHobbySubmit}
+                className="w-full bg-[#b99547] hover:bg-[#a07f36] text-black font-medium px-4 py-2 rounded-md transition"
                 >
-                    <h2 className="text-2xl font-semibold mb-4">
-                    Select your hobbies
-                    </h2>
-
-                    <div className="grid grid-cols-2 gap-3 mb-6 w-full">
-                    {hobbies.map((hobby) => (
-                        <button
-                        key={hobby}
-                        onClick={() => toggleHobby(hobby)}
-                        className={`p-2 rounded border transition-colors ${
-                            selectedHobbies.includes(hobby)
-                            ? "bg-blue-500 text-white border-blue-600"
-                            : "bg-gray-100 hover:bg-gray-200"
-                        }`}
-                        >
-                        {hobby}
-                        </button>
-                    ))}
-                    </div>
-
-                    <button
-                    onClick={handleHobbySubmit}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                    Finish
-                    </button>
-                </motion.div>
-                )}
-            </AnimatePresence>
-            </div>
+                Finish
+                </button>
+            </motion.div>
+            )}
+        </AnimatePresence>
         </div>
+    </div>
     );
+
 };
 
 export default Onboarding;

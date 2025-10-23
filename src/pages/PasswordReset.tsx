@@ -35,19 +35,22 @@ function PasswordReset() {
     };
 
     return (
-        <div>
-            <h1>Email</h1>
-            <form onSubmit={handleEmailSubmit}>
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                />
-                <button type="submit">Send Password Reset Email</button>
-            </form>
-            {status && <p className="status-text">{status}</p>}
+        <div className="h-screen flex justify-center items-center bg-white">
+            <div className="flex flex-col items-center justify-center border-2 border-black rounded-[5%] bg-gradient-to-br from-[#fadd9e] to-[#daba76] p-8 w-full max-w-md">
+                <h1 className="text-3xl font-bold text-[#000000] mb-6">Email</h1>
+                <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4 w-full">
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                        className="mt-1 p-2 border border-white rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
+                    />
+                    <button type="submit" className="mt-4 px-4 py-2 rounded-lg bg-[#c77903] text-white font-semibold hover:bg-[#b36b02] transition-colors duration-200">Send Password Reset Email</button>
+                </form>
+                {status && <p className="status-text">{status}</p>}
+            </div>
         </div>
         
     );

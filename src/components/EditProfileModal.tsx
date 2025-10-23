@@ -125,49 +125,73 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <h2>Edit Profile</h2>
-        <div className="modal-content">
-          <div className="profile-preview">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000]">
+      <div className="bg-white rounded-xl shadow-lg w-[400px] max-w-[90%] p-6 text-black">
+        <h2 className="text-2xl font-semibold mb-4 text-[#b99547] text-center">
+          Edit Profile
+        </h2>
+
+        <div className="flex flex-col gap-4">
+          {/* Profile Picture Preview */}
+          <div className="flex flex-col items-center">
             {profile?.profileURL ? (
               <img
                 src={profile.profileURL}
                 alt="Profile"
-                className="profile-picture-preview"
+                className="w-24 h-24 rounded-full object-cover border border-gray-300 mb-2"
               />
             ) : (
-              <div className="profile-placeholder">No Profile Picture</div>
+              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mb-2">
+                No Profile Picture
+              </div>
             )}
-            <input type="file" accept="image/*" onChange={handleFileChange} />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="text-sm text-gray-700"
+            />
           </div>
 
+          {/* Description */}
           <textarea
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
             placeholder="Update your description"
+            className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-[#b99547] focus:outline-none"
           />
+
+          {/* Username */}
           <textarea
             value={newUsername}
             onChange={(e) => setNewUsername(e.target.value)}
             placeholder="Update your username"
+            className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-[#b99547] focus:outline-none"
           />
-          <div className="privacy-toggle">
-            <label>
-              Private Profile
-              <input
-                type="checkbox"
-                checked={isPrivate}
-                onChange={(e) => setIsPrivate(e.target.checked)}
-              />
-            </label>
+
+          {/* Privacy Toggle */}
+          <div className="flex items-center justify-between text-black">
+            <label className="font-medium">Private Profile</label>
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={(e) => setIsPrivate(e.target.checked)}
+              className="w-5 h-5 accent-[#b99547] cursor-pointer"
+            />
           </div>
 
-          <div className="modal-actions">
-            <button onClick={onClose} className="cancel-button">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 mt-4">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-black transition"
+            >
               Cancel
             </button>
-            <button onClick={handleSave} className="save-button">
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 rounded-md bg-[#b99547] hover:bg-[#a07f36] text-black font-medium transition"
+            >
               Save
             </button>
           </div>
@@ -175,6 +199,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       </div>
     </div>
   );
+
 };
 
 export default EditProfileModal;
