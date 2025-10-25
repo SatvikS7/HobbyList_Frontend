@@ -82,6 +82,7 @@ public class PhotoController {
         photo.setFilename(photoDto.filename());
         photo.setSize(photoDto.size());
         photo.setContentType(photoDto.contentType());
+        photo.setDescription(photoDto.description());
         photoRepository.save(photo);
 
         return ResponseEntity.ok("Photo metadata saved successfully");
