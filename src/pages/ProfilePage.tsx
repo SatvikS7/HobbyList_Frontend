@@ -1,5 +1,6 @@
 import React, { use, useEffect, useState } from "react";
 import EditProfileModal from "../components/EditProfileModal.tsx";
+import HobbyCard from "../components/HobbyCard.tsx";
 
 type PhotoDto = {
   topic: string;
@@ -25,7 +26,8 @@ const ProfilePage: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string>("All");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
 
 
   useEffect(() => {
@@ -48,6 +50,8 @@ const ProfilePage: React.FC = () => {
         const profileData: UserProfile = await profileRes.json();
         console.log("Fetched hobbies:", profileData.hobbies);
         setPhotos(photosData);
+        // print all photo descriptions
+        photosData.forEach(photo => console.log(photo.description));
         setFilteredPhotos(photosData);
         setTags(Array.from(new Set(photosData.map((photo) => photo.topic))));
         setProfile(profileData);
@@ -143,21 +147,36 @@ const ProfilePage: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {filteredPhotos.map((photo, index) => (
-          <div key={index} className="rounded-xl shadow-md overflow-hidden border border-gray-200">
+          <div 
+            key={index}
+            className="rounded-xl shadow-md overflow-hidden border border-gray-200"
+            onClick={() => setSelectedPhoto(photo)}>
             <img
               src={photo.imageUrl}
               alt={photo.topic}
               className="w-full h-48 object-cover"
             />
+            {/*
             <div className="p-2 text-sm text-gray-800">
               <p className="font-medium">{photo.topic}</p>
               <p className="text-gray-500">{new Date(photo.uploadDate).toLocaleDateString()}</p>
-              <p>{photo.description}</p>
-            </div>
+              <p className="text-black">{photo.description}</p>
+            </div>*/}
+
+            {selectedPhoto && (
+              <HobbyCard
+                imageUrl={selectedPhoto.imageUrl}
+                topic={selectedPhoto.topic}
+                description={selectedPhoto.description}
+                uploadDate={selectedPhoto.uploadDate}
+                onClose={() => setSelectedPhoto(null)}
+              />
+            )}
           </div>
         ))}
       </div>
     </div>
+
   );
 };
 

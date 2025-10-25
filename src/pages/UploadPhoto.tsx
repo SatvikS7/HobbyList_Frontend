@@ -65,6 +65,7 @@ const UploadPhoto: React.FC = () => {
       }
 
       // 3️⃣ Notify backend with metadata
+      console.log("Description before payload:", description);
       const saveUrlPayload = {
         topic,
         imageUrl: uploadUrl.split("?")[0], // clean S3 URL without query params
