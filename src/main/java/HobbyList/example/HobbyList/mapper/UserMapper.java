@@ -3,7 +3,6 @@ package HobbyList.example.HobbyList.mapper;
 import HobbyList.example.HobbyList.dto.ProfileDto;
 import HobbyList.example.HobbyList.model.User;
 import org.mapstruct.*;
-import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
