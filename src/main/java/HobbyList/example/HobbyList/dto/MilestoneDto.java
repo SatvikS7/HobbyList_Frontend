@@ -11,16 +11,16 @@ public record MilestoneDto(
     String task,
     OffsetDateTime dueDate,
     Boolean isCompleted,
-    Milestone parent,
-    List<Milestone> subMilestones,
-    Photo taggedPhotoId
+    Long parentId,
+    List<MilestoneDto> subMilestones,
+    Long taggedPhotoId
 ) {
-    public MilestoneDto(Long id, String task, OffsetDateTime dueDate, Boolean isCompleted, Milestone parent, List<Milestone> subMilestones, Photo taggedPhotoId) {
+    public MilestoneDto(Long id, String task, OffsetDateTime dueDate, Boolean isCompleted, Long parentId, List<MilestoneDto> subMilestones, Long taggedPhotoId) {
         this.id = id;
         this.task = task;
         this.dueDate = dueDate;
         this.isCompleted = isCompleted;
-        this.parent = parent;
+        this.parentId = parentId;
         this.subMilestones = subMilestones;
         this.taggedPhotoId = taggedPhotoId;
     }

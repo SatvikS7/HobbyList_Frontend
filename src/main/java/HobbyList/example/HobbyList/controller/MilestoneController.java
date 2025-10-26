@@ -6,6 +6,7 @@ import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.MilestoneRepository;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
+import HobbyList.example.HobbyList.service.MilestoneService;
 import HobbyList.example.HobbyList.dto.MilestoneDto;
 import HobbyList.example.HobbyList.mapper.MilestoneMapper;
 
@@ -15,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,15 +31,18 @@ public class MilestoneController {
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final MilestoneMapper milestoneMapper;
+    private final MilestoneService milestoneService;
 
     public MilestoneController(MilestoneRepository milestoneRepository,
                                UserRepository userRepository,
                                PhotoRepository photoRepository,
-                               MilestoneMapper milestoneMapper) {
+                               MilestoneMapper milestoneMapper,
+                               MilestoneService milestoneService) {
         this.milestoneRepository = milestoneRepository;
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.milestoneMapper = milestoneMapper;
+        this.milestoneService = milestoneService;
     }
 
     // ---------------------------
@@ -50,15 +56,7 @@ public class MilestoneController {
         // If you want a hobby filter, implement a repository method. For now we return all parent roots.
         List<Milestone> roots = milestoneRepository.findByUserIdAndParentIsNull(user.getId());
         List<MilestoneDto> dtoRoots = roots.stream()
-                .map(m -> new MilestoneDto(
-                        m.getId(),
-                        m.getTask(),
-                        m.getDueDate(),
-                        m.isCompleted(),
-                        m.getParent(),
-                        m.getSubMilestones(),
-                        m.getTaggedPhoto()
-                ))
+                .map(milestoneService::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtoRoots);
     }
@@ -88,9 +86,10 @@ public class MilestoneController {
         m.setTask(req.task());
         m.setDueDate(req.dueDate());
         m.setUser(user);
+        m.setDateCreated(LocalDateTime.now());
 
-        if (req.parent() != null) {
-            Optional<Milestone> parentOpt = milestoneRepository.findById(req.parent().getId());
+        if (req.parentId() != null) {
+            Optional<Milestone> parentOpt = milestoneRepository.findById(req.parentId());
             if (parentOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Parent milestone not found.");
             }
@@ -115,17 +114,7 @@ public class MilestoneController {
         // m.setHobbyTags(req.hobbyTags);
 
         Milestone saved = milestoneRepository.save(m);
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                new MilestoneDto(
-                        saved.getId(),
-                        saved.getTask(),
-                        saved.getDueDate(),
-                        saved.isCompleted(),
-                        saved.getParent(),
-                        saved.getSubMilestones(),
-                        saved.getTaggedPhoto()
-                )
-        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(milestoneService.toDto(saved));
     }
 
     // ---------------------------
@@ -153,13 +142,8 @@ public class MilestoneController {
     // ---------------------------
     // Update a task (partial): update dueDate and/or task name
     // ---------------------------
-    public static class UpdateMilestoneRequest {
-        public String task;
-        public OffsetDateTime dueDate;
-        public Boolean isCompleted;
-    }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/update-milestone/{id}")
     public ResponseEntity<?> updateMilestone(Authentication authentication,
                                              @PathVariable Long id,
                                              @RequestBody MilestoneDto req) {
@@ -177,15 +161,7 @@ public class MilestoneController {
         milestoneMapper.updateMilestoneFromDto(req, m);
         milestoneRepository.save(m);
 
-        return ResponseEntity.ok(new MilestoneDto(
-                m.getId(),
-                m.getTask(),
-                m.getDueDate(),
-                m.isCompleted(),
-                m.getParent(),
-                m.getSubMilestones(),
-                m.getTaggedPhoto()
-        ));
+        return ResponseEntity.ok(milestoneService.toDto(m));
     }
 
     // ---------------------------
@@ -197,15 +173,7 @@ public class MilestoneController {
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         List<Milestone> result = milestoneRepository.findByUserIdAndTaggedPhotoIsNull(user.getId());
-        return ResponseEntity.ok(result.stream().map(m -> new MilestoneDto(
-                m.getId(),
-                m.getTask(),
-                m.getDueDate(),
-                m.isCompleted(),
-                m.getParent(),
-                m.getSubMilestones(),
-                m.getTaggedPhoto()
-        )).collect(Collectors.toList()));
+        return ResponseEntity.ok(result.stream().map(milestoneService::toDto).collect(Collectors.toList()));
     }
 
     // ---------------------------
