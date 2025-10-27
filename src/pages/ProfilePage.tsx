@@ -1,6 +1,7 @@
 import React, { use, useEffect, useState } from "react";
 import EditProfileModal from "../components/EditProfileModal.tsx";
 import HobbyCard from "../components/HobbyCard.tsx";
+import MilestoneSection from "../components/MilestoneSection.tsx";
 
 type PhotoDto = {
   topic: string;
@@ -28,6 +29,7 @@ const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
+  const [activeTab, setActiveTab] = useState<"photos" | "milestones">("photos");
 
 
   useEffect(() => {
@@ -126,55 +128,81 @@ const ProfilePage: React.FC = () => {
 
       <hr className="my-6 border-t border-gray-300" />
 
-      {/* Photos Section */}
-      <h1 className="text-2xl font-bold mb-4 text-gray-900">My Photos</h1>
-      <div className="mb-6 flex items-center gap-2">
-        <label htmlFor="tagFilter" className="font-medium text-gray-800">
-          Filter by tag:
-        </label>
-        <select
-          id="tagFilter"
-          className="border border-gray-300 rounded px-2 py-1 text-black"
-          value={selectedTag}
-          onChange={(e) => setSelectedTag(e.target.value)}
+      {/* Tabs */}
+      <div className="flex gap-6 mt-10 mb-6">
+        <button
+          className={`px-4 py-2 rounded-md transition-all ${
+            activeTab === "photos" 
+            ? "bg-[#b99547] text-white" 
+            : "text-gray-800 hover:bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("photos")}
         >
-          <option value="All">All</option>
-          {tags.map((tag) => (
-            <option key={tag} value={tag}>{tag}</option>
-          ))}
-        </select>
+          Photos
+        </button>
+
+        <button
+          className={`px-4 py-2 rounded-md transition-all ${
+            activeTab === "milestones" 
+            ? "bg-[#b99547] text-white" 
+            : "text-gray-800 hover:bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("milestones")}
+        >
+          Milestones
+        </button>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {filteredPhotos.map((photo, index) => (
-          <div 
-            key={index}
-            className="rounded-xl shadow-md overflow-hidden border border-gray-200"
-            onClick={() => setSelectedPhoto(photo)}>
-            <img
-              src={photo.imageUrl}
-              alt={photo.topic}
-              className="w-full h-48 object-cover"
-            />
-            {/*
-            <div className="p-2 text-sm text-gray-800">
-              <p className="font-medium">{photo.topic}</p>
-              <p className="text-gray-500">{new Date(photo.uploadDate).toLocaleDateString()}</p>
-              <p className="text-black">{photo.description}</p>
-            </div>*/}
-
-            {selectedPhoto && (
-              <HobbyCard
-                imageUrl={selectedPhoto.imageUrl}
-                topic={selectedPhoto.topic}
-                description={selectedPhoto.description}
-                uploadDate={selectedPhoto.uploadDate}
-                onClose={() => setSelectedPhoto(null)}
-              />
-            )}
+      {/* Tab Content */}
+      {activeTab === "photos" ? (
+        <>
+          {/* Photos Section */}
+          <h1 className="text-2xl font-bold mb-4 text-gray-900">My Photos</h1>
+          <div className="mb-6 flex items-center gap-2">
+            <label htmlFor="tagFilter" className="font-medium text-gray-800">
+              Filter by tag:
+            </label>
+            <select
+              id="tagFilter"
+              className="border border-gray-300 rounded px-2 py-1 text-black"
+              value={selectedTag}
+              onChange={(e) => setSelectedTag(e.target.value)}
+            >
+              <option value="All">All</option>
+              {tags.map((tag) => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
+            </select>
           </div>
-        ))}
-      </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {filteredPhotos.map((photo, index) => (
+              <div 
+                key={index}
+                className="rounded-xl shadow-md overflow-hidden border border-gray-200"
+                onClick={() => setSelectedPhoto(photo)}>
+                <img
+                  src={photo.imageUrl}
+                  alt={photo.topic}
+                  className="w-full h-48 object-cover"
+                />
+              </div>
+            ))}
+          </div>
+
+          {selectedPhoto && (
+            <HobbyCard
+              imageUrl={selectedPhoto.imageUrl}
+              topic={selectedPhoto.topic}
+              description={selectedPhoto.description}
+              uploadDate={selectedPhoto.uploadDate}
+              onClose={() => setSelectedPhoto(null)}
+            />
+          )}
+        </>
+        
+      ):(
+        <MilestoneSection />
+      )}
     </div>
 
   );

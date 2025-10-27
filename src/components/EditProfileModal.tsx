@@ -125,7 +125,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000]">
+    <div 
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000]"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div className="bg-white rounded-xl shadow-lg w-[400px] max-w-[90%] p-6 text-black">
         <h2 className="text-2xl font-semibold mb-4 text-[#b99547] text-center">
           Edit Profile

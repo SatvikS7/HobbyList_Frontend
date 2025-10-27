@@ -18,7 +18,11 @@ const HobbyCard: React.FC<HobbyCardProps> = ({
   return (
     <div
       className="fixed inset-0 w-full h-full backdrop-blur-lg bg-black/20 flex justify-center items-center"
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div
         className="bg-white w-[90%] md:w-[70%] max-h-[90vh] rounded-lg overflow-hidden flex flex-col md:flex-row shadow-xl relative"
