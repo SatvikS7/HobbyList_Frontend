@@ -2,9 +2,12 @@ package HobbyList.example.HobbyList.service;
 
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import HobbyList.example.HobbyList.dto.MilestoneDto;
 import HobbyList.example.HobbyList.model.Milestone;
 
+@Service
 public class MilestoneService {
     public MilestoneDto toDto(Milestone m) {
         return new MilestoneDto(

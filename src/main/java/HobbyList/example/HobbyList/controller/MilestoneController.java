@@ -33,6 +33,8 @@ public class MilestoneController {
     private final MilestoneMapper milestoneMapper;
     private final MilestoneService milestoneService;
 
+    private final int MAX_DEPTH = 5;
+
     public MilestoneController(MilestoneRepository milestoneRepository,
                                UserRepository userRepository,
                                PhotoRepository photoRepository,
@@ -68,14 +70,6 @@ public class MilestoneController {
     // Request body example (JSON):
     // { "task": "Practice chords", "dueDate": "2025-11-01T15:00:00Z", "isCompleted": false, "parentId": 12 }
     // ---------------------------
-    public static class CreateMilestoneRequest {
-        public String task;
-        public OffsetDateTime dueDate;
-        public Boolean isCompleted;
-        public Long parentId; // optional
-        public List<String> hobbyTags; // optional if you have tags in your entity
-    }
-
     @PostMapping("/create-milestone")
     public ResponseEntity<?> createMilestone(Authentication authentication,
                                              @RequestBody MilestoneDto req) {
@@ -87,7 +81,7 @@ public class MilestoneController {
         m.setDueDate(req.dueDate());
         m.setUser(user);
         m.setDateCreated(LocalDateTime.now());
-
+        System.out.println("Creating milestone with parent: " + req.parentId());
         if (req.parentId() != null) {
             Optional<Milestone> parentOpt = milestoneRepository.findById(req.parentId());
             if (parentOpt.isEmpty()) {
@@ -100,16 +94,23 @@ public class MilestoneController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Parent milestone does not belong to user.");
             }
 
-            if (parent.getDepth() >= 5) {
+            if (parent.getDepth() >= MAX_DEPTH) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Cannot create subtask: parent depth >= 5.");
+                        .body("Cannot create subtask: parent depth >= " + MAX_DEPTH + ".");
             }
 
             m.setParent(parent);
+            m.setDepth(parent.getDepth() + 1);
+
+            if (parent.getSubMilestones() == null) {
+                parent.setSubMilestones(new ArrayList<>());
+            }
+
+            parent.getSubMilestones().add(m);
         } else {
+            m.setDepth(0);
             m.setParent(null);
         }
-
         // optional: set hobbyTags if your entity has them
         // m.setHobbyTags(req.hobbyTags);
 

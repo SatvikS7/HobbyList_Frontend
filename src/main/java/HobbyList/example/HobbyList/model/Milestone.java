@@ -27,7 +27,7 @@ public class Milestone {
     private OffsetDateTime dueDate;
 
     @Column(nullable = false)
-    private boolean completed;
+    private boolean completed = false;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")

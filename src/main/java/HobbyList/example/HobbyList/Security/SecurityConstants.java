@@ -14,6 +14,12 @@ public final class SecurityConstants {
         "/api/profile/get-upload-url",
         "/api/profile/save-url",
         "/api/profile/update-profile",
+        "/api/milestones",
+        "/api/milestones/create-milestone",
+        "/api/milestones/delete-milestone/**",
+        "/api/milestones/update-milestone/**",
+        "/api/milestones/no-photo",
+        "/api/milestones/all",
     };
 
     private SecurityConstants() {}
