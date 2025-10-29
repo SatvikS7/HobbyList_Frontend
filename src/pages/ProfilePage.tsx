@@ -2,20 +2,13 @@ import React, { use, useEffect, useState } from "react";
 import EditProfileModal from "../components/EditProfileModal.tsx";
 import HobbyCard from "../components/HobbyCard.tsx";
 import MilestoneSection from "../components/MilestoneSection.tsx";
+import { useProfile } from "../contexts/ProfileContext.tsx";
 
 type PhotoDto = {
   topic: string;
   imageUrl: string;
   description: string;
   uploadDate: string;
-};
-
-type UserProfile = {
-  profileURL: string | null;
-  description: string;
-  username: string;
-  isPrivate: boolean;
-  hobbies: string[];
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -25,42 +18,35 @@ const ProfilePage: React.FC = () => {
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>("All");
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  //const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  //const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "milestones">("photos");
-
+  const { profile, loading, error, getProfile, refreshProfile , addHobby, invalidateHobbies } = useProfile();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = sessionStorage.getItem("jwt");
-        const [photosRes, profileRes] = await Promise.all([
-          fetch(`${API_BASE}/photos`, {
+        const photosRes = await fetch(`${API_BASE}/photos`, {
             headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/profile`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+          });
 
         if (!photosRes.ok) throw new Error("Failed to fetch photos");
-        if (!profileRes.ok) throw new Error("Failed to fetch profile");
-
         const photosData: PhotoDto[] = await photosRes.json();
-        const profileData: UserProfile = await profileRes.json();
+
+        const profileData = await getProfile();
+        if (!profileData) throw new Error("Failed to fetch profile");
+        if (profileData) {
+          setTags(profileData.hobbies);
+        }
         console.log("Fetched hobbies:", profileData.hobbies);
+
         setPhotos(photosData);
-        // print all photo descriptions
-        photosData.forEach(photo => console.log(photo.description));
         setFilteredPhotos(photosData);
-        setTags(Array.from(new Set(photosData.map((photo) => photo.topic))));
-        setProfile(profileData);
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -76,8 +62,16 @@ const ProfilePage: React.FC = () => {
     }
   }, [selectedTag, photos]);
 
-  if (loading) {
+  if (loading && !profile) {
     return <div className="loading-screen">Loading profile...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
+  if (!profile) {
+    return <div className="text-gray-700">No profile data available.</div>;
   }
 
   return (
@@ -112,13 +106,7 @@ const ProfilePage: React.FC = () => {
               }}
               onClose={() => setIsEditing(false)}
               onSave={(updatedProfile) => {
-                setProfile({
-                  profileURL: updatedProfile.profileURL,
-                  description: updatedProfile.description,
-                  username: updatedProfile.username,
-                  isPrivate: updatedProfile.isPrivate,
-                  hobbies: updatedProfile.hobbies,
-                });
+                refreshProfile().catch(console.error);
                 setIsEditing(false);
               }}
             />

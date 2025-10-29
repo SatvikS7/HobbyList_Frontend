@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useProfile } from "../contexts/ProfileContext";
 
 const UploadPhoto: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -6,6 +7,20 @@ const UploadPhoto: React.FC = () => {
   const [description, setDescription] = useState("");
   const [topic, setTopic] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const { profile, getProfile, refreshProfile, invalidateHobbies } = useProfile();
+  const [hobbies, setHobbies] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadHobbies = async () => {
+      try {
+        const p = profile ?? (await getProfile());
+        if (p) setHobbies(p.hobbies);
+      } catch (error) {
+        console.error("Failed to load hobbies:", error);
+      }
+    };
+    loadHobbies();
+  }, [profile, getProfile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -13,6 +28,10 @@ const UploadPhoto: React.FC = () => {
       setFile(selectedFile);
       setFilename(selectedFile.name); // default filename to actual file name
     }
+  };
+
+  const handleTopicChange = (value: string) => {
+    setTopic(value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,7 +54,7 @@ const UploadPhoto: React.FC = () => {
         filename,
         contentType: file.type,
       };
-      // 1️⃣ Request presigned URL
+      // Request presigned URL
       const presignResponse = await fetch("http://localhost:8080/api/photos/get-upload-url", {
         method: "POST",
         headers: {
@@ -51,7 +70,7 @@ const UploadPhoto: React.FC = () => {
 
       const uploadUrl = await presignResponse.text(); // backend returns URL as plain string
 
-      // 2️⃣ Upload file directly to S3
+      // Upload file directly to S3
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
@@ -66,6 +85,10 @@ const UploadPhoto: React.FC = () => {
 
       // 3️⃣ Notify backend with metadata
       console.log("Description before payload:", description);
+
+      if (!hobbies.includes(topic)) {
+        invalidateHobbies();
+      }
       const saveUrlPayload = {
         topic,
         imageUrl: uploadUrl.split("?")[0], // clean S3 URL without query params
@@ -90,6 +113,7 @@ const UploadPhoto: React.FC = () => {
       }
 
       alert("Upload successful!");
+      refreshProfile();
       setFile(null);
       setFilename("");
       setDescription("");
@@ -131,12 +155,17 @@ const UploadPhoto: React.FC = () => {
 
         {/* Topic */}
         <input
-          type="text"
+          list="hobby-list"
           value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder="Topic"
+          onChange={(e) => handleTopicChange(e.target.value)}
+          placeholder="Topic (select or type)"
           className="w-full p-2 border border-black rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
         />
+        <datalist id="hobby-list">
+          {hobbies.map((hobby) => (
+            <option key={hobby} value={hobby} />
+          ))}
+        </datalist>
 
         <button
           type="submit"

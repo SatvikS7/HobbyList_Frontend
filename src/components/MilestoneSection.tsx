@@ -9,6 +9,7 @@ type MilestoneDto = {
   parentId: number | null;
   subMilestones: MilestoneDto[];
   taggedPhotoId: number | null;
+  hobbyTag: string | null;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -22,6 +23,7 @@ const MilestoneSection: React.FC = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [parentId, setParentId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hobbyTag, setHobbyTag] = useState<string | null>(null);
 
   const fetchMilestones = async () => {
     const token = sessionStorage.getItem("jwt");
@@ -54,6 +56,7 @@ const MilestoneSection: React.FC = () => {
       parentId: parentId,
       subMilestones: [],
       taggedPhotoId: null,
+      hobbyTag: hobbyTag,
     };
     try {
       setLoading(true);
