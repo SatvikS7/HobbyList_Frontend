@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import HobbyList.example.HobbyList.dto.MilestoneDto;
 import HobbyList.example.HobbyList.model.Milestone;
+import HobbyList.example.HobbyList.model.Photo;
 
 @Service
 public class MilestoneService {
@@ -19,7 +20,8 @@ public class MilestoneService {
             m.getSubMilestones().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList()),
-            m.getTaggedPhoto() != null ? m.getTaggedPhoto().getId() : null
+            m.getTaggedPhotos() != null ? m.getTaggedPhotos().stream().map(Photo::getId).collect(Collectors.toList()) : null,
+            m.getHobbyTag()
         );
     }
 }

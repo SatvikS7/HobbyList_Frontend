@@ -42,9 +42,13 @@ public class Milestone {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "photo_id")
-    private Photo taggedPhoto;
+    @ManyToMany
+    @JoinTable(
+        name = "milestone_photos",
+        joinColumns = @JoinColumn(name = "milestone_id"),
+        inverseJoinColumns = @JoinColumn(name = "photo_id")
+    )
+    private List<Photo> taggedPhotos;
 
     private String hobbyTag;
 

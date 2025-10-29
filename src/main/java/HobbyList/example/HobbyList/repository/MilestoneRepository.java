@@ -13,7 +13,7 @@ import HobbyList.example.HobbyList.model.Milestone;
 @Repository
 public interface MilestoneRepository extends JpaRepository<Milestone, Long> {
     List<Milestone> findByUserIdAndParentIsNull(Long userId);
-    List<Milestone> findByUserIdAndTaggedPhotoIsNull(Long userId);
+    List<Milestone> findByUserIdAndTaggedPhotosIsNull(Long userId);
     List<Milestone> findByUserId(Long userId);
 
     @Query("SELECT m FROM Milestone m LEFT JOIN FETCH m.subMilestones WHERE m.id = :id")

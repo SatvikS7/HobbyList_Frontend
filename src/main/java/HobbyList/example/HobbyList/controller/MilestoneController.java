@@ -6,6 +6,7 @@ import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.MilestoneRepository;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
+import HobbyList.example.HobbyList.service.HobbyService;
 import HobbyList.example.HobbyList.service.MilestoneService;
 import HobbyList.example.HobbyList.dto.MilestoneDto;
 import HobbyList.example.HobbyList.mapper.MilestoneMapper;
@@ -32,6 +33,7 @@ public class MilestoneController {
     private final PhotoRepository photoRepository;
     private final MilestoneMapper milestoneMapper;
     private final MilestoneService milestoneService;
+    private final HobbyService hobbyService;
 
     private final int MAX_DEPTH = 5;
 
@@ -39,12 +41,14 @@ public class MilestoneController {
                                UserRepository userRepository,
                                PhotoRepository photoRepository,
                                MilestoneMapper milestoneMapper,
-                               MilestoneService milestoneService) {
+                               MilestoneService milestoneService,
+                               HobbyService hobbyService) {
         this.milestoneRepository = milestoneRepository;
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.milestoneMapper = milestoneMapper;
         this.milestoneService = milestoneService;
+        this.hobbyService = hobbyService;
     }
 
     // ---------------------------
@@ -111,10 +115,14 @@ public class MilestoneController {
             m.setDepth(0);
             m.setParent(null);
         }
-        // optional: set hobbyTags if your entity has them
-        // m.setHobbyTags(req.hobbyTags);
+        m.setHobbyTag(req.hobbyTag());
 
         Milestone saved = milestoneRepository.save(m);
+        
+        if(req.hobbyTag() != null && !req.hobbyTag().isEmpty()) {
+            hobbyService.addHobbyToUser(user, req.hobbyTag());
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(milestoneService.toDto(saved));
     }
 
@@ -173,7 +181,7 @@ public class MilestoneController {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        List<Milestone> result = milestoneRepository.findByUserIdAndTaggedPhotoIsNull(user.getId());
+        List<Milestone> result = milestoneRepository.findByUserIdAndTaggedPhotosIsNull(user.getId());
         return ResponseEntity.ok(result.stream().map(milestoneService::toDto).collect(Collectors.toList()));
     }
 

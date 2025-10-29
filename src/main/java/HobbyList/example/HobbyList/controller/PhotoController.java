@@ -16,6 +16,7 @@ import HobbyList.example.HobbyList.model.Photo;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
+import HobbyList.example.HobbyList.service.HobbyService;
 import HobbyList.example.HobbyList.service.S3Service;
 import jakarta.validation.Valid;
 
@@ -31,11 +32,13 @@ public class PhotoController {
     private final UserRepository userRepository;
     private final PhotoRepository photoRepository;
     private final S3Service s3Service;
+    private final HobbyService hobbyService;
 
-    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service) {
+    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service, HobbyService hobbyService) {
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.s3Service = s3Service;
+        this.hobbyService = hobbyService;
     }
 
     
@@ -84,6 +87,8 @@ public class PhotoController {
         photo.setContentType(photoDto.contentType());
         photo.setDescription(photoDto.description());
         photoRepository.save(photo);
+
+        hobbyService.addHobbyToUser(user, photoDto.topic());
 
         return ResponseEntity.ok("Photo metadata saved successfully");
     }
