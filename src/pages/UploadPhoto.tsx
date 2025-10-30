@@ -12,6 +12,7 @@ const UploadPhoto: React.FC = () => {
 
   useEffect(() => {
     const loadHobbies = async () => {
+      console.log("Loading hobbies for upload photo");
       try {
         const p = profile ?? (await getProfile());
         if (p) setHobbies(p.hobbies);
@@ -86,9 +87,6 @@ const UploadPhoto: React.FC = () => {
       // 3️⃣ Notify backend with metadata
       console.log("Description before payload:", description);
 
-      if (!hobbies.includes(topic)) {
-        invalidateHobbies();
-      }
       const saveUrlPayload = {
         topic,
         imageUrl: uploadUrl.split("?")[0], // clean S3 URL without query params
@@ -113,7 +111,9 @@ const UploadPhoto: React.FC = () => {
       }
 
       alert("Upload successful!");
-      refreshProfile();
+      if (!hobbies.includes(topic)) {
+        await refreshProfile();
+      }
       setFile(null);
       setFilename("");
       setDescription("");

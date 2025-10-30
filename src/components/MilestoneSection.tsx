@@ -1,5 +1,6 @@
 // Milestone Section
 import React, { useEffect, useState } from "react";
+import { useProfile } from "../contexts/ProfileContext";
 
 type MilestoneDto = {
   id: number;
@@ -24,6 +25,8 @@ const MilestoneSection: React.FC = () => {
   const [parentId, setParentId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [hobbyTag, setHobbyTag] = useState<string | null>(null);
+  const { profile, getProfile, refreshProfile, invalidateHobbies } = useProfile();
+  const [hobbies, setHobbies] = useState<string[]>([]);
 
   const fetchMilestones = async () => {
     const token = sessionStorage.getItem("jwt");
@@ -39,6 +42,23 @@ const MilestoneSection: React.FC = () => {
     fetchMilestones();
   }, []);
 
+  useEffect(() => {
+      const loadHobbies = async () => {
+        console.log("Loading hobbies for upload photo");
+        try {
+          const p = profile ?? (await getProfile());
+          if (p) setHobbies(p.hobbies);
+        } catch (error) {
+          console.error("Failed to load hobbies:", error);
+        }
+      };
+      loadHobbies();
+  }, [profile, getProfile]);
+
+  const handleHobbyTagChange = (value: string) => {
+    setHobbyTag(value);
+  };
+
   const handleCreateMilestone = async () => {
     if (!newTask.trim() || !newDueDate || !newDueTime) {
       alert("Please fill out all fields.");
@@ -47,7 +67,7 @@ const MilestoneSection: React.FC = () => {
 
     // Construct OffsetDateTime (ISO 8601 with timezone offset)
     const combinedDateTime = `${newDueDate}T${newDueTime}:00${getLocalTimezoneOffset()}`;
-    // create empty milestoneDto object
+
     const milestoneData: MilestoneDto = {
       id: 0,
       task: newTask,
@@ -75,6 +95,10 @@ const MilestoneSection: React.FC = () => {
 
       // Refresh local milestone list
       await fetchMilestones();
+
+      if (hobbyTag != null && !hobbies.includes(hobbyTag)) {
+        await refreshProfile();
+      }
       resetModal();
     } catch (err) {
       console.error(err);
@@ -120,6 +144,7 @@ const MilestoneSection: React.FC = () => {
     setIsCompleted(false);
     setShowAddModal(false);
     setParentId(null);
+    setHobbyTag(null);
   };
 
   // Recursive component (child milestones expand below parent)
@@ -228,6 +253,19 @@ const MilestoneSection: React.FC = () => {
                 onChange={(e) => setNewDueTime(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#b99547]"
             />
+
+            <input
+              list="hobby-list"
+              value={hobbyTag || ""}
+              onChange={(e) => handleHobbyTagChange(e.target.value)}
+              placeholder="Topic (select or type)"
+              className="w-full p-2 border border-black rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
+            />
+            <datalist id="hobby-list">
+              {hobbies.map((hobby) => (
+                <option key={hobby} value={hobby} />
+              ))}
+            </datalist>
 
             <label className="flex items-center gap-2 mb-4 text-gray-800">
                 <input type="checkbox"
