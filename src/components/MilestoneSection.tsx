@@ -25,10 +25,13 @@ const MilestoneSection: React.FC = () => {
   const [parentId, setParentId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [hobbyTag, setHobbyTag] = useState<string | null>(null);
-  const { profile, getProfile, refreshProfile, invalidateHobbies } = useProfile();
-  const [hobbies, setHobbies] = useState<string[]>([]);
+  const {profile, getProfile, refreshProfile, invalidateHobbies} = useProfile();
+  const [tags, setTags] = useState<string[]>([]);
+  //const [selectedTag, setSelectedTag] = useState<string>("All");
+  //const [filteredMilestones, setFilteredMilestones] = useState<MilestoneDto[]>([]);
+  //const [flatMilestones, setFlatMilestones] = useState<MilestoneDto[]>([]);
 
-  const fetchMilestones = async () => {
+  const fetchParentMilestones = async () => {
     const token = sessionStorage.getItem("jwt");
     const res = await fetch(`${API_BASE}/milestones`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -37,6 +40,23 @@ const MilestoneSection: React.FC = () => {
     console.log("Fetched milestones:", data);
     setMilestones(data);
   };
+
+  /* FILTERING WIP - GET ALL MILESTONES
+  const fetchAllMilestones = async () => {
+    const token = sessionStorage.getItem("jwt");
+    const res = await fetch(`${API_BASE}/milestones/all`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    console.log("Fetched all milestones:", data);
+    setFilteredMilestones(data);
+    setFlatMilestones(data);
+  };
+  */
+
+  const fetchMilestones = async () => {
+    await Promise.all([/*fetchAllMilestones(), */fetchParentMilestones()]);
+  }
 
   useEffect(() => {
     fetchMilestones();
@@ -47,7 +67,7 @@ const MilestoneSection: React.FC = () => {
         console.log("Loading hobbies for upload photo");
         try {
           const p = profile ?? (await getProfile());
-          if (p) setHobbies(p.hobbies);
+          if (p) setTags(p.hobbies);
         } catch (error) {
           console.error("Failed to load hobbies:", error);
         }
@@ -55,9 +75,23 @@ const MilestoneSection: React.FC = () => {
       loadHobbies();
   }, [profile, getProfile]);
 
+  /* FILTERING WIP
+
+  useEffect(() => {
+    if (selectedTag === "All") {
+      setFilteredMilestones(milestones);
+    } else {
+      setFilteredMilestones(
+        flatMilestones.filter((m) => m.hobbyTag === selectedTag)
+      );
+    }
+  }, [selectedTag, flatMilestones, milestones]);
+  */
+  /*
   const handleHobbyTagChange = (value: string) => {
     setHobbyTag(value);
   };
+  */
 
   const handleCreateMilestone = async () => {
     if (!newTask.trim() || !newDueDate || !newDueTime) {
@@ -96,7 +130,7 @@ const MilestoneSection: React.FC = () => {
       // Refresh local milestone list
       await fetchMilestones();
 
-      if (hobbyTag != null && !hobbies.includes(hobbyTag)) {
+      if (hobbyTag != null && !tags.includes(hobbyTag)) {
         await refreshProfile();
       }
       resetModal();
@@ -201,6 +235,23 @@ const MilestoneSection: React.FC = () => {
     <div className="text-gray-900 p-6 max-w-6xl mx-auto bg-white rounded-xl shadow-md space-y-6">
       <div className="flex justify-between items-center mt-4">
         <h2 className="text-2xl font-bold text-gray-900">My Milestones</h2>
+        {/*     FILTERING WIP - ELEMENT
+        <label htmlFor="tagFilter" className="font-medium text-gray-800">
+            Filter by tag:
+          </label>
+          <select
+            id="tagFilter"
+            className="border border-gray-300 rounded px-2 py-1 text-black"
+            value={selectedTag}
+            onChange={(e) => setSelectedTag(e.target.value)}
+          >
+            <option value="All">All</option>
+            {tags.map((tag) => (
+              <option key={tag} value={tag}>{tag}</option>
+            ))}
+          </select>
+          */}
+
         <button
           className="px-4 py-2 bg-[#b99547] text-white rounded-md hover:bg-[#a07f36] shadow-sm transition"
           onClick={() => setShowAddModal(true)}
@@ -257,13 +308,13 @@ const MilestoneSection: React.FC = () => {
             <input
               list="hobby-list"
               value={hobbyTag || ""}
-              onChange={(e) => handleHobbyTagChange(e.target.value)}
+              onChange={(e) => setHobbyTag(e.target.value)}
               placeholder="Topic (select or type)"
               className="w-full p-2 border border-black rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
             />
             <datalist id="hobby-list">
-              {hobbies.map((hobby) => (
-                <option key={hobby} value={hobby} />
+              {tags.map((tag) => (
+                <option key={tag} value={tag} />
               ))}
             </datalist>
 
