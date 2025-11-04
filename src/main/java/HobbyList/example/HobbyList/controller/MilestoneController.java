@@ -235,7 +235,10 @@ public class MilestoneController {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        List<Milestone> all = milestoneRepository.findByUserId(user.getId());
-        return ResponseEntity.ok(all);
+        List<Milestone> roots = milestoneRepository.findByUserId(user.getId());
+        List<MilestoneDto> dtoRoots = roots.stream()
+                .map(milestoneService::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtoRoots);
     }
 }
