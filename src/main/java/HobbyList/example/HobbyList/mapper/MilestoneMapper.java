@@ -1,9 +1,7 @@
 package HobbyList.example.HobbyList.mapper;
 
 import HobbyList.example.HobbyList.dto.MilestoneDto;
-import HobbyList.example.HobbyList.dto.ProfileDto;
 import HobbyList.example.HobbyList.model.Milestone;
-import HobbyList.example.HobbyList.model.User;
 
 import org.mapstruct.*;
 
@@ -14,8 +12,8 @@ public interface MilestoneMapper{
 
     @AfterMapping
     default void handleBooleans(MilestoneDto dto, @MappingTarget Milestone milestone) {
-        if (dto.isCompleted() != null) {
-            milestone.setCompleted(dto.isCompleted());
+        if (dto.completed() != null) {
+            milestone.setCompleted(dto.completed());
         }
     }
 }
