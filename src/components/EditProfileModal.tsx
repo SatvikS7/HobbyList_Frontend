@@ -1,17 +1,18 @@
 import React, { useState } from "react";
+import { useProfile } from "../contexts/ProfileContext"
 
 type ProfileDto = {
     profileURL: string | null;
     description: string;
-    username: string;
+    displayName: string;
     isPrivate: boolean;
     hobbies: string[];
 }
 
 type EditProfileModalProps = {
-  profile: { profileURL: string | null; description: string; username: string; isPrivate: boolean; hobbies: string[] } | ProfileDto | null;
+  profile: { profileURL: string | null; description: string; displayName: string; isPrivate: boolean; hobbies: string[] } | ProfileDto | null;
   onClose: () => void;
-  onSave: (updatedProfile: { profileURL: string | null; description: string; username: string; isPrivate: boolean; hobbies: string[] }) => void;
+  onSave: (updatedProfile: { profileURL: string | null; description: string; displayName: string; isPrivate: boolean; hobbies: string[] }) => void;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -25,7 +26,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     profile?.description || ""
   );
   const [newFile, setNewFile] = useState<File | null>(null);
-  const [newUsername, setNewUsername] = useState(profile?.username || "");
+  const [newUsername, setNewUsername] = useState(profile?.displayName || "");
   const [isPrivate, setIsPrivate] = useState(profile?.isPrivate ?? false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,8 +81,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
       const updates: Record<string, any> = {};
 
-      if (newUsername && newUsername !== profile?.username) {
-        updates.username = newUsername.trim();
+      if (newUsername && newUsername !== profile?.displayName) {
+        updates.displayName = newUsername.trim();
       }
 
       if (newDescription && newDescription !== profile?.description) {
@@ -95,7 +96,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         updates.isPrivate = isPrivate;
       }
       console.log(updates);
-
+      
       if (Object.keys(updates).length > 0) {
         const res = await fetch(`${API_BASE}/profile/update-profile`, {
           method: "PATCH",

@@ -85,7 +85,7 @@ const ProfilePage: React.FC = () => {
         />
         <div className="flex flex-col gap-2">
           <h1 className="text-lg text-gray-800 font-medium">
-            {profile?.username || "Username"}
+            {profile?.displayName || "Username"}
           </h1>
           <p className="text-gray-700">{profile?.description || "No description set yet."}</p>
           <button
@@ -100,7 +100,7 @@ const ProfilePage: React.FC = () => {
               profile={{
                 profileURL: profile.profileURL,
                 description: profile.description,
-                username: profile.username,
+                displayName: profile.displayName,
                 isPrivate: profile.isPrivate,
                 hobbies: profile.hobbies,
               }}

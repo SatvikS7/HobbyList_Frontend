@@ -14,7 +14,7 @@ const API_BASE = import.meta.env.VITE_BACKEND_BASE  ;
 export type ProfileDto = {
   profileURL: string | null;
   description: string;
-  username: string;
+  displayName: string;
   isPrivate: boolean;
   hobbies: string[]; // canonical shape returned by backend
 };
