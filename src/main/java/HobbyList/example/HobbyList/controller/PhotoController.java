@@ -55,7 +55,7 @@ public class PhotoController {
                     String imageURL = photo.getImageUrl();
                     String key = imageURL.substring(imageURL.indexOf("photos/"));
                     String presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
-                    return new PhotoDto(photo.getTopic(), presignedUrl, photo.getDescription(), photo.getUploadDate());
+                    return new PhotoDto(photo.getId(), photo.getTopic(), presignedUrl, photo.getDescription(), photo.getUploadDate());
                 })
                 .toList();
         return ResponseEntity.ok(photoDtos);
@@ -92,6 +92,4 @@ public class PhotoController {
 
         return ResponseEntity.ok("Photo metadata saved successfully");
     }
-    
-    
 }
