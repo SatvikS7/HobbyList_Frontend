@@ -1,6 +1,7 @@
 // Milestone Section
 import React, { useEffect, useState } from "react";
 import { useProfile } from "../contexts/ProfileContext";
+import { usePhotos } from "../contexts/PhotoContext";
 
 type MilestoneDto = {
   id: number;
@@ -9,7 +10,7 @@ type MilestoneDto = {
   isCompleted: boolean;
   parentId: number | null;
   subMilestones: MilestoneDto[];
-  taggedPhotoId: number | null;
+  taggedPhotoIds: number[];
   hobbyTag: string | null;
 };
 
@@ -26,7 +27,9 @@ const MilestoneSection: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [hobbyTag, setHobbyTag] = useState<string | null>(null);
   const {profile, getProfile, refreshProfile, invalidateHobbies} = useProfile();
+  const {photos, getPhotos} = usePhotos();
   const [tags, setTags] = useState<string[]>([]);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
   //const [selectedTag, setSelectedTag] = useState<string>("All");
   //const [filteredMilestones, setFilteredMilestones] = useState<MilestoneDto[]>([]);
   //const [flatMilestones, setFlatMilestones] = useState<MilestoneDto[]>([]);
@@ -109,7 +112,7 @@ const MilestoneSection: React.FC = () => {
       isCompleted,
       parentId: parentId,
       subMilestones: [],
-      taggedPhotoId: null,
+      taggedPhotoIds: selectedPhotoIds,
       hobbyTag: hobbyTag,
     };
     try {
@@ -171,6 +174,21 @@ const MilestoneSection: React.FC = () => {
     return `${sign}${hours}:${minutes}`;
   };
 
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0]; // yyyy-mm-dd
+  };
+
+  const getParentDueDate = () => {
+    if (parentId == null) return null;
+
+    const parent = milestones.find((m) => m.id === parentId);
+    if (!parent) return null;
+
+    // parent.dueDate is ISO string—extract yyyy-mm-dd
+    return parent.dueDate.split("T")[0];
+  };
+
   const resetModal = () => {
     setNewTask("");
     setNewDueDate("");
@@ -179,6 +197,7 @@ const MilestoneSection: React.FC = () => {
     setShowAddModal(false);
     setParentId(null);
     setHobbyTag(null);
+    setSelectedPhotoIds([])
   };
 
   // Recursive component (child milestones expand below parent)
@@ -294,6 +313,8 @@ const MilestoneSection: React.FC = () => {
                 type="date"
                 value={newDueDate}
                 onChange={(e) => setNewDueDate(e.target.value)}
+                min={getTodayDate()}
+                max={getParentDueDate() || undefined}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#b99547]"
             />
 
@@ -317,6 +338,42 @@ const MilestoneSection: React.FC = () => {
                 <option key={tag} value={tag} />
               ))}
             </datalist>
+
+            {selectedPhotoIds.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-700">Selected Photos:</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedPhotoIds.map((id) => (
+                    <span
+                      key={id}
+                      className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-sm"
+                    >
+                      #{id}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <label className="block mb-1 text-sm font-medium text-gray-700">Tag Photos</label>
+            <select
+              multiple
+              className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-gray-900"
+              size={5} 
+              value={selectedPhotoIds.map(String)}
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions).map((opt) =>
+                  Number(opt.value)
+                );
+                setSelectedPhotoIds(selected);
+              }}
+            >
+              {(photos ?? []).map((p) => (
+                <option key={p.id} value={p.id}>
+                  Photo #{p.id}
+                </option>
+              ))}
+            </select>
 
             <label className="flex items-center gap-2 mb-4 text-gray-800">
                 <input type="checkbox"

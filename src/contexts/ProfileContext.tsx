@@ -1,4 +1,3 @@
-// src/contexts/ProfileContext.tsx
 import React, {
   createContext,
   useContext,
@@ -8,7 +7,7 @@ import React, {
   type ReactNode,
 } from "react";
 
-const API_BASE = import.meta.env.VITE_BACKEND_BASE  ;
+const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 // ---------- Types ----------
 export type ProfileDto = {
@@ -16,7 +15,7 @@ export type ProfileDto = {
   description: string;
   displayName: string;
   isPrivate: boolean;
-  hobbies: string[]; // canonical shape returned by backend
+  hobbies: string[]; 
 };
 
 type ProfileCacheShape = {

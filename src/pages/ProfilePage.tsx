@@ -3,6 +3,8 @@ import EditProfileModal from "../components/EditProfileModal.tsx";
 import HobbyCard from "../components/HobbyCard.tsx";
 import MilestoneSection from "../components/MilestoneSection.tsx";
 import { useProfile } from "../contexts/ProfileContext.tsx";
+import { usePhotos } from "../contexts/PhotoContext";
+
 
 type PhotoDto = {
   topic: string;
@@ -14,7 +16,7 @@ type PhotoDto = {
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 const ProfilePage: React.FC = () => {
-  const [photos, setPhotos] = useState<PhotoDto[]>([]);
+  //const [photos, setPhotos] = useState<PhotoDto[]>([]);
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>("All");
@@ -24,27 +26,24 @@ const ProfilePage: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "milestones">("photos");
   const { profile, loading, error, getProfile, refreshProfile , addHobby, invalidateHobbies } = useProfile();
+  const { photos, getPhotos, loading: photosLoading, error: photosError } = usePhotos();
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = sessionStorage.getItem("jwt");
-        const photosRes = await fetch(`${API_BASE}/photos`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+        // fetch photos from cache
+        const photosData = await getPhotos();
+        if (!photosData) throw new Error("Failed to fetch photos");
+        if (photosData) setFilteredPhotos(photosData);
 
-        if (!photosRes.ok) throw new Error("Failed to fetch photos");
-        const photosData: PhotoDto[] = await photosRes.json();
-
+        // fetch profile from cache
         const profileData = await getProfile();
         if (!profileData) throw new Error("Failed to fetch profile");
         if (profileData) {
           setTags(profileData.hobbies);
         }
         console.log("Fetched hobbies:", profileData.hobbies);
-
-        setPhotos(photosData);
-        setFilteredPhotos(photosData);
       } catch (err) {
         console.error(err);
       }
@@ -56,9 +55,9 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (selectedTag === "All") {
-      setFilteredPhotos(photos);
+      setFilteredPhotos(photos ?? []);
     } else {
-      setFilteredPhotos(photos.filter((photo) => photo.topic === selectedTag));
+      setFilteredPhotos((photos ?? []).filter((photo) => photo.topic === selectedTag));
     }
   }, [selectedTag, photos]);
 
