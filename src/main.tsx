@@ -5,14 +5,17 @@ import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom';
 import {ProfileProvider} from './contexts/ProfileContext.tsx';
 import { PhotoProvider } from './contexts/PhotoContext.tsx';
+import { MilestoneProvider } from './contexts/milestoneContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ProfileProvider>
-        <PhotoProvider>
-          <App />
-        </PhotoProvider>
+        <MilestoneProvider>
+          <PhotoProvider>
+            <App />
+          </PhotoProvider>
+        </MilestoneProvider>
       </ProfileProvider>
     </BrowserRouter>
   </StrictMode>,

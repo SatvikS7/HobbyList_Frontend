@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useProfile } from "../contexts/ProfileContext";
 import { usePhotos } from "../contexts/PhotoContext";
+import { useMilestones } from "../contexts/milestoneContext";
 
 type MilestoneDto = {
   id: number;
@@ -17,7 +18,7 @@ type MilestoneDto = {
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 const MilestoneSection: React.FC = () => {
-  const [milestones, setMilestones] = useState<MilestoneDto[]>([]);
+  //const [milestones, setMilestones] = useState<MilestoneDto[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTask, setNewTask] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
@@ -28,6 +29,7 @@ const MilestoneSection: React.FC = () => {
   const [hobbyTag, setHobbyTag] = useState<string | null>(null);
   const {profile, getProfile, refreshProfile, invalidateHobbies} = useProfile();
   const {photos, getPhotos} = usePhotos();
+  const {milestones, getMilestones, refreshMilestones} = useMilestones();
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
   //const [selectedTag, setSelectedTag] = useState<string>("All");
@@ -35,13 +37,8 @@ const MilestoneSection: React.FC = () => {
   //const [flatMilestones, setFlatMilestones] = useState<MilestoneDto[]>([]);
 
   const fetchParentMilestones = async () => {
-    const token = sessionStorage.getItem("jwt");
-    const res = await fetch(`${API_BASE}/milestones`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    console.log("Fetched milestones:", data);
-    setMilestones(data);
+    const data = await getMilestones();
+    if (!data) throw new Error("Failed to fetch milestones");
   };
 
   /* FILTERING WIP - GET ALL MILESTONES
@@ -67,7 +64,6 @@ const MilestoneSection: React.FC = () => {
 
   useEffect(() => {
       const loadHobbies = async () => {
-        console.log("Loading hobbies for upload photo");
         try {
           const p = profile ?? (await getProfile());
           if (p) setTags(p.hobbies);
@@ -131,7 +127,7 @@ const MilestoneSection: React.FC = () => {
       const createdMilestone: MilestoneDto = await res.json();
 
       // Refresh local milestone list
-      await fetchMilestones();
+      await refreshMilestones();
 
       if (hobbyTag != null && !tags.includes(hobbyTag)) {
         await refreshProfile();
@@ -159,7 +155,7 @@ const MilestoneSection: React.FC = () => {
     }
 
     // Refresh local milestone list
-    await fetchMilestones();
+    await refreshMilestones();
     resetModal();
   };
 
@@ -180,7 +176,7 @@ const MilestoneSection: React.FC = () => {
   };
 
   const getParentDueDate = () => {
-    if (parentId == null) return null;
+    if (parentId == null || milestones == null) return null;
 
     const parent = milestones.find((m) => m.id === parentId);
     if (!parent) return null;
@@ -281,8 +277,8 @@ const MilestoneSection: React.FC = () => {
 
       {/* Root level list */}
       <ul className="space-y-3">
-        {milestones.map((m) => (
-          <MilestoneItem key={m.id} milestone={m} refresh={fetchMilestones} />
+        {(milestones ?? []).map((m) => (
+          <MilestoneItem key={m.id} milestone={m} refresh={getMilestones} />
         ))}
       </ul>
 

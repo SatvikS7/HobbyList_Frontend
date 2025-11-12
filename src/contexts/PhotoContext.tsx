@@ -9,6 +9,7 @@ export type PhotoDto = {
   imageUrl: string;
   description: string;
   uploadDate: string; 
+  taggedMilestoneIds: number[]
 };
 
 type PhotoCacheShape = {
@@ -173,7 +174,11 @@ export const PhotoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         invalidatePhotos,
     };
 
-    return <PhotoContext.Provider value={value}>{children}</PhotoContext.Provider>;
+    return (
+        <PhotoContext.Provider value={value}>
+            {children}
+        </PhotoContext.Provider>
+    );
 };
 
 export function usePhotos() {
