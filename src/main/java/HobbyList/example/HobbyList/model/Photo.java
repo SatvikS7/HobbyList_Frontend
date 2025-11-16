@@ -1,6 +1,7 @@
 package HobbyList.example.HobbyList.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -27,6 +28,9 @@ public class Photo {
     @PrimaryKeyJoinColumn
     private User user;
 
+    @ManyToMany(mappedBy = "taggedPhotos")
+    private List<Milestone> taggedMilestones;
+
     public Photo() {}
 
     public Photo(String topic, String imageUrl, User user, LocalDateTime uploadDate) {
@@ -44,6 +48,7 @@ public class Photo {
         this.size = size;
         this.contentType = contentType;
         this.description = null;    
+        this.taggedMilestones = null;
         this.topic = "Profile Picture";
         this.isProfile = true;
     }

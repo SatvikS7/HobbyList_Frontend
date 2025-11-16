@@ -85,6 +85,7 @@ public class MilestoneController {
         m.setDueDate(req.dueDate());
         m.setUser(user);
         m.setDateCreated(LocalDateTime.now());
+        m.setTaggedPhotos(photoRepository.findAllById(req.taggedPhotoIds()));
         System.out.println("Creating milestone with parent: " + req.parentId());
         if (req.parentId() != null) {
             Optional<Milestone> parentOpt = milestoneRepository.findById(req.parentId());

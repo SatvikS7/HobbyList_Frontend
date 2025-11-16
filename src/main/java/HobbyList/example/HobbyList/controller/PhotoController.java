@@ -18,6 +18,7 @@ import HobbyList.example.HobbyList.repository.PhotoRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
 import HobbyList.example.HobbyList.service.HobbyService;
 import HobbyList.example.HobbyList.service.S3Service;
+import HobbyList.example.HobbyList.service.PhotoService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,12 +34,14 @@ public class PhotoController {
     private final PhotoRepository photoRepository;
     private final S3Service s3Service;
     private final HobbyService hobbyService;
+    private final PhotoService photoService;
 
-    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service, HobbyService hobbyService) {
+    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service, HobbyService hobbyService, PhotoService photoService) {
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.s3Service = s3Service;
         this.hobbyService = hobbyService;
+        this.photoService = photoService;
     }
 
     
@@ -55,7 +58,7 @@ public class PhotoController {
                     String imageURL = photo.getImageUrl();
                     String key = imageURL.substring(imageURL.indexOf("photos/"));
                     String presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
-                    return new PhotoDto(photo.getId(), photo.getTopic(), presignedUrl, photo.getDescription(), photo.getUploadDate());
+                    return photoService.toDto(photo, presignedUrl);
                 })
                 .toList();
         return ResponseEntity.ok(photoDtos);
