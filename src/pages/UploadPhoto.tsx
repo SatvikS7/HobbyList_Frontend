@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useProfile } from "../contexts/ProfileContext";
-import { usePhotos } from "../contexts/PhotoContext";
+import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 
 const UploadPhoto: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -10,7 +10,7 @@ const UploadPhoto: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const { profile, getProfile, refreshProfile, invalidateHobbies } = useProfile();
   const [hobbies, setHobbies] = useState<string[]>([]);
-  const { invalidatePhotos } = usePhotos();
+  const { invalidatePhotos } = usePhotoMilestone();
 
   useEffect(() => {
     const loadHobbies = async () => {

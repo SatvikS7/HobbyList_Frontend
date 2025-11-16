@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useProfile } from "../contexts/ProfileContext"
 
 type ProfileDto = {
     profileURL: string | null;

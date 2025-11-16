@@ -1,8 +1,9 @@
 // Milestone Section
 import React, { useEffect, useState } from "react";
 import { useProfile } from "../contexts/ProfileContext";
-import { usePhotos } from "../contexts/PhotoContext";
-import { useMilestones } from "../contexts/milestoneContext";
+//import { usePhotos } from "../contexts/PhotoContext";
+//import { useMilestones } from "../contexts/MilestoneContext";
+import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 
 type MilestoneDto = {
   id: number;
@@ -28,8 +29,9 @@ const MilestoneSection: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [hobbyTag, setHobbyTag] = useState<string | null>(null);
   const {profile, getProfile, refreshProfile, invalidateHobbies} = useProfile();
-  const {photos, getPhotos} = usePhotos();
-  const {milestones, getMilestones, refreshMilestones} = useMilestones();
+  //const {photos, getPhotos} = usePhotos();
+  //const {milestones, getMilestones, refreshMilestones} = useMilestones();
+  const {photos, milestones, getPhotos, invalidatePhotos, getMilestones, refreshMilestones} = usePhotoMilestone();
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
   //const [selectedTag, setSelectedTag] = useState<string>("All");
@@ -128,6 +130,11 @@ const MilestoneSection: React.FC = () => {
 
       // Refresh local milestone list
       await refreshMilestones();
+
+      if (selectedPhotoIds.length > 0) {
+        // Invalidate photo cache to reflect new milestone tags
+        await invalidatePhotos();
+      }
 
       if (hobbyTag != null && !tags.includes(hobbyTag)) {
         await refreshProfile();

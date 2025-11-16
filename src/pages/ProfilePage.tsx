@@ -1,9 +1,9 @@
 import React, { use, useEffect, useState } from "react";
 import EditProfileModal from "../components/EditProfileModal.tsx";
-import HobbyCard from "../components/HobbyCard.tsx";
+import PhotoCard from "../components/PhotoCard.tsx";
 import MilestoneSection from "../components/MilestoneSection.tsx";
 import { useProfile } from "../contexts/ProfileContext.tsx";
-import { usePhotos } from "../contexts/PhotoContext";
+import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext.tsx";
 
 
 type PhotoDto = {
@@ -11,22 +11,20 @@ type PhotoDto = {
   imageUrl: string;
   description: string;
   uploadDate: string;
+  taggedMilestoneIds: number[];
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 const ProfilePage: React.FC = () => {
-  //const [photos, setPhotos] = useState<PhotoDto[]>([]);
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>("All");
-  //const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  //const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "milestones">("photos");
   const { profile, loading, error, getProfile, refreshProfile , addHobby, invalidateHobbies } = useProfile();
-  const { photos, getPhotos, loading: photosLoading, error: photosError } = usePhotos();
+  const { photos, getPhotos, loadingPhotos, errorPhotos, milestoneMap } = usePhotoMilestone();
 
 
   useEffect(() => {
@@ -177,11 +175,12 @@ const ProfilePage: React.FC = () => {
           </div>
 
           {selectedPhoto && (
-            <HobbyCard
+            <PhotoCard
               imageUrl={selectedPhoto.imageUrl}
               topic={selectedPhoto.topic}
               description={selectedPhoto.description}
               uploadDate={selectedPhoto.uploadDate}
+              taggedMilestoneIds={selectedPhoto.taggedMilestoneIds}
               onClose={() => setSelectedPhoto(null)}
             />
           )}
