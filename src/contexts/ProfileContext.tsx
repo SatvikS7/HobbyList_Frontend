@@ -7,6 +7,8 @@ import React, {
   type ReactNode,
 } from "react";
 
+import { getUserIdFromToken } from "./generateNamespace";
+
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 // ---------- Types ----------
@@ -51,7 +53,11 @@ type ProfileContextValue = {
 const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
 
 // ---------- Local storage keys & constants ----------
-const LS_KEY = "hobbylist_profile_cache_v1";
+const userId = getUserIdFromToken();
+if (!userId) {
+  throw new Error("Unauthenticated: missing user ID from token");
+}
+const LS_KEY = `hobbylist_profile_cache_v1_${userId}`;
 const PROFILE_URL_TTL_MS = 5 * 60 * 1000; // 5 minutes in ms
 
 // ---------- Helpers ----------

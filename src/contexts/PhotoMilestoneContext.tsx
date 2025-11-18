@@ -8,6 +8,8 @@ import React, {
     useMemo 
 } from "react";
 
+import { getUserIdFromToken } from "./generateNamespace";
+
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 // ---------- Types ----------
@@ -74,10 +76,15 @@ type PhotoMilestoneContextValue = {
 const PhotoMilestoneContext = createContext<PhotoMilestoneContextValue | undefined>(undefined);
 
 // ---------- Local storage keys & constants ----------
-const PHOTO_LS_KEY = "hobbylist_photo_cache_v1";
+const userId = getUserIdFromToken();
+if (!userId) {
+    throw new Error("Unauthenticated: missing user ID from token");
+}
+
+const PHOTO_LS_KEY = `hobbylist_photo_cache_v1_${userId}`;
 const PHOTO_URL_TTL_MS = 5 * 60 * 1000; 
 
-const MILESTONE_LS_KEY = "hobbylist_milestone_cache_v1";
+const MILESTONE_LS_KEY = `hobbylist_milestone_cache_v1_${userId}`;
 
 // ---------- Helpers ----------
 function readPhotoCacheFromLocalStorage(): PhotoCacheShape {
