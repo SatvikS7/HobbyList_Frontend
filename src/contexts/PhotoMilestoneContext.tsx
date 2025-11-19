@@ -8,7 +8,7 @@ import React, {
     useMemo 
 } from "react";
 
-import { getUserIdFromToken } from "./generateNamespace";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
@@ -73,23 +73,10 @@ type PhotoMilestoneContextValue = {
     invalidateMilestones: () => void;
 };
 
-const PhotoMilestoneContext = createContext<PhotoMilestoneContextValue | undefined>(undefined);
-
-// ---------- Local storage keys & constants ----------
-const userId = getUserIdFromToken();
-if (!userId) {
-    throw new Error("Unauthenticated: missing user ID from token");
-}
-
-const PHOTO_LS_KEY = `hobbylist_photo_cache_v1_${userId}`;
-const PHOTO_URL_TTL_MS = 5 * 60 * 1000; 
-
-const MILESTONE_LS_KEY = `hobbylist_milestone_cache_v1_${userId}`;
-
 // ---------- Helpers ----------
-function readPhotoCacheFromLocalStorage(): PhotoCacheShape {
+function readPhotoCacheFromLocalStorage(photo_key: string): PhotoCacheShape {
     try {
-        const raw = localStorage.getItem(PHOTO_LS_KEY);
+        const raw = localStorage.getItem(photo_key);
         if (!raw) {
             return { photos: null, lastFetchTs: null, isFresh: false };
         }
@@ -102,27 +89,27 @@ function readPhotoCacheFromLocalStorage(): PhotoCacheShape {
         };
     } catch (e) {
         console.warn("Failed to read photo cache from localStorage, clearing it.", e);
-        localStorage.removeItem(PHOTO_LS_KEY);
+        localStorage.removeItem(photo_key);
         return { photos: null, lastFetchTs: null, isFresh: false };
     }  
 }
 
-function writePhotoCacheToLocalStorage(cache: PhotoCacheShape) {
+function writePhotoCacheToLocalStorage(photo_key: string, cache: PhotoCacheShape) {
     try {
-        localStorage.setItem(PHOTO_LS_KEY, JSON.stringify(cache));
+        localStorage.setItem(photo_key, JSON.stringify(cache));
     } catch (e) {
         console.warn("Failed to write photo cache to localStorage", e);
     }
 }
 
-function isPhotoUrlExpired(lastFetchTs: number | null) {
+function isPhotoUrlExpired(lastFetchTs: number | null, photo_ttl: number) {
     if (!lastFetchTs) return true;
-    return Date.now() - lastFetchTs > PHOTO_URL_TTL_MS;
+    return Date.now() - lastFetchTs > photo_ttl;
 }
 
-function readMilestoneCacheFromLocalStorage(): MilestoneCacheShape {
+function readMilestoneCacheFromLocalStorage(milestone_key: string): MilestoneCacheShape {
     try {
-        const raw = localStorage.getItem(MILESTONE_LS_KEY);
+        const raw = localStorage.getItem(milestone_key);
         if (!raw) {
             return { milestones: null, isFresh: false };
         }
@@ -134,24 +121,38 @@ function readMilestoneCacheFromLocalStorage(): MilestoneCacheShape {
         };
     } catch (e) {
         console.warn("Failed to read milestone cache from localStorage, clearing it.", e);
-        localStorage.removeItem(MILESTONE_LS_KEY);
+        localStorage.removeItem(milestone_key);
         return { milestones: null, isFresh: false };
     }
 }
 
-function writeMilestoneCacheToLocalStorage(cache: MilestoneCacheShape) {
+function writeMilestoneCacheToLocalStorage(milestone_key: string, cache: MilestoneCacheShape) {
     try {
-        localStorage.setItem(MILESTONE_LS_KEY, JSON.stringify(cache));
+        localStorage.setItem(milestone_key, JSON.stringify(cache));
     } catch (e) {
         console.warn("Failed to write milestone cache to localStorage", e);
     }   
 }
 
+const PhotoMilestoneContext = createContext<PhotoMilestoneContextValue | undefined>(undefined);
+
 // ---------- Provider ----------
 export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const initialPhotoCache = readPhotoCacheFromLocalStorage();
-    const initialMilestoneCache = readMilestoneCacheFromLocalStorage();
+    // ---------- Local storage keys & constants ----------
+    const { userId, isLoggedIn } = useAuth();
 
+    const PHOTO_URL_TTL_MS = 5 * 60 * 1000; 
+
+    const PHOTO_LS_KEY = useMemo(() => {
+        return `hobbylist_photo_cache_v1_${userId ?? "guest"}`;
+    }, [userId]);
+
+    const MILESTONE_LS_KEY = useMemo(() => {
+        return `hobbylist_milestone_cache_v1_${userId ?? "guest"}`;
+    }, [userId]);
+
+    const initialPhotoCache = useMemo(() => readPhotoCacheFromLocalStorage(PHOTO_LS_KEY), [PHOTO_LS_KEY]);
+    const initialMilestoneCache = useMemo(() => readMilestoneCacheFromLocalStorage(MILESTONE_LS_KEY), [MILESTONE_LS_KEY]);
     const [photos, setPhotos] = useState<PhotoDto[] | null>(initialPhotoCache.photos);
     const [milestones, setMilestones] = useState<MilestoneDto[] | null>(initialMilestoneCache.milestones);
 
@@ -166,6 +167,24 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
 
     const inFlightPhotoFetch = useRef<Promise<PhotoDto[] | null> | null>(null);
     const inFlightMilestoneFetch = useRef<Promise<MilestoneDto[] | null> | null>(null);
+
+    useEffect(() => {
+        // reset local state when user changes
+        const newPhotoCache = readPhotoCacheFromLocalStorage(PHOTO_LS_KEY);
+        const newMilestoneCache = readMilestoneCacheFromLocalStorage(MILESTONE_LS_KEY);
+
+        setPhotos(newPhotoCache.photos);
+        setLastFetchTs(newPhotoCache.lastFetchTs);
+        setIsPhotoCacheFresh(newPhotoCache.isFresh);
+
+        setMilestones(newMilestoneCache.milestones);
+        setIsMilestoneCacheFresh(newMilestoneCache.isFresh);
+
+        // clear in-flight operations
+        inFlightPhotoFetch.current = null;
+        inFlightMilestoneFetch.current = null;
+
+    }, [PHOTO_LS_KEY, MILESTONE_LS_KEY]);
 
     const milestoneMap = useMemo(() => {
         const map = new Map<number, MilestoneDto>();
@@ -190,16 +209,16 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
     }, [photos]);
 
     useEffect(() => {
-        writePhotoCacheToLocalStorage({
+        writePhotoCacheToLocalStorage(PHOTO_LS_KEY, {
             photos,
             lastFetchTs,
             isFresh: isPhotoCacheFresh,
         });
-        writeMilestoneCacheToLocalStorage({
+        writeMilestoneCacheToLocalStorage(MILESTONE_LS_KEY, {
             milestones,
             isFresh: isMilestoneCacheFresh,
         });
-    }, [photos, lastFetchTs, isPhotoCacheFresh, milestones, isMilestoneCacheFresh]);
+    }, [PHOTO_LS_KEY, MILESTONE_LS_KEY, photos, lastFetchTs, isPhotoCacheFresh, milestones, isMilestoneCacheFresh]);
 
     const fetchMilestonesFromServer = async (): Promise<MilestoneDto[]> => {
             const token = sessionStorage.getItem("jwt");
@@ -293,7 +312,7 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         const getPhotos = async (): Promise<PhotoDto[] | null> => {
             setErrorPhotos(null);
     
-            if (photos && isPhotoCacheFresh && !isPhotoUrlExpired(lastFetchTs)) {
+            if (photos && isPhotoCacheFresh && !isPhotoUrlExpired(lastFetchTs, PHOTO_URL_TTL_MS)) {
                 return photos;
             }
     

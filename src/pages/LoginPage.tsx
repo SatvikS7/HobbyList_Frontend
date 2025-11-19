@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from "../components/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -29,7 +29,7 @@ function LoginPage() {
             const data = await response.json();
             console.log("Login successful:", data);
             sessionStorage.setItem("jwt", data.token);
-            login();
+            login(data.token);
             alert("Login successful!");
             if(data.newAccount) {
                 navigate('/onboarding-page')

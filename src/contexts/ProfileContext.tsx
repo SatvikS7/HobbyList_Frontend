@@ -5,9 +5,10 @@ import React, {
   useState,
   useRef,
   type ReactNode,
+  useMemo,
 } from "react";
 
-import { getUserIdFromToken } from "./generateNamespace";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
@@ -50,20 +51,10 @@ type ProfileContextValue = {
   addHobby: (hobby: string) => Promise<void>;
 };
 
-const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
-
-// ---------- Local storage keys & constants ----------
-const userId = getUserIdFromToken();
-if (!userId) {
-  throw new Error("Unauthenticated: missing user ID from token");
-}
-const LS_KEY = `hobbylist_profile_cache_v1_${userId}`;
-const PROFILE_URL_TTL_MS = 5 * 60 * 1000; // 5 minutes in ms
-
 // ---------- Helpers ----------
-function readCacheFromLocalStorage(): ProfileCacheShape {
+function readCacheFromLocalStorage(key: string): ProfileCacheShape {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) {
       return { profile: null, lastProfileFetchTs: null, isHobbyCacheFresh: false };
     }
@@ -76,27 +67,37 @@ function readCacheFromLocalStorage(): ProfileCacheShape {
     };
   } catch (e) {
     console.warn("Failed to read profile cache from localStorage, clearing it.", e);
-    localStorage.removeItem(LS_KEY);
+    localStorage.removeItem(key);
     return { profile: null, lastProfileFetchTs: null, isHobbyCacheFresh: false };
   }
 }
 
-function writeCacheToLocalStorage(cache: ProfileCacheShape) {
+function writeCacheToLocalStorage(key:string, cache: ProfileCacheShape) {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(cache));
+    localStorage.setItem(key, JSON.stringify(cache));
   } catch (e) {
     console.warn("Failed to write profile cache to localStorage", e);
   }
 }
 
-function isProfileUrlExpired(lastFetchTs: number | null) {
+function isProfileUrlExpired(lastFetchTs: number | null, ttl: number) {
   if (!lastFetchTs) return true;
-  return Date.now() - lastFetchTs > PROFILE_URL_TTL_MS;
+  return Date.now() - lastFetchTs > ttl;
 }
+
+const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
 
 // ---------- Provider ----------
 export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const initialCache = readCacheFromLocalStorage();
+  // ---------- Local storage keys & constants ----------
+  const { userId } = useAuth();
+  const PROFILE_URL_TTL_MS = 5 * 60 * 1000; // 5 minutes in ms
+
+  const LS_KEY = useMemo(() => {
+    return `hobbylist_profile_cache_v1_${userId || "guest"}`;
+  }, [userId]);
+
+  const initialCache = useMemo(() => readCacheFromLocalStorage(LS_KEY), [LS_KEY]);
 
   const [profile, setProfile] = useState<ProfileDto | null>(initialCache.profile);
   const [lastProfileFetchTs, setLastProfileFetchTs] = useState<number | null>(
@@ -112,14 +113,26 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
   // in-flight fetch promise to deduplicate concurrent fetches
   const inFlightRef = useRef<Promise<ProfileDto | null> | null>(null);
 
+  // reset cache if userId changes (logout/login)
+  useEffect(() => {
+    const newCache = readCacheFromLocalStorage(LS_KEY);
+
+    setProfile(newCache.profile);
+    setLastProfileFetchTs(newCache.lastProfileFetchTs);
+    setIsHobbyCacheFresh(newCache.isHobbyCacheFresh);
+
+    // clear in-flight fetch
+    inFlightRef.current = null;
+  }, [LS_KEY]);
+
   // persist changes to localStorage whenever cache changes
   useEffect(() => {
-    writeCacheToLocalStorage({
+    writeCacheToLocalStorage(LS_KEY, {
       profile,
       lastProfileFetchTs,
       isHobbyCacheFresh,
     });
-  }, [profile, lastProfileFetchTs, isHobbyCacheFresh]);
+  }, [LS_KEY, profile, lastProfileFetchTs, isHobbyCacheFresh]);
 
   // ---------- internal fetcher ----------
   const fetchProfileFromServer = async (): Promise<ProfileDto> => {
@@ -152,7 +165,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     // If cache present and both conditions satisfied, return it.
     const hasProfile = profile !== null;
     const hobbyFresh = isHobbyCacheFresh === true;
-    const urlNotExpired = !isProfileUrlExpired(lastProfileFetchTs);
+    const urlNotExpired = !isProfileUrlExpired(lastProfileFetchTs, PROFILE_URL_TTL_MS);
 
     if (hasProfile && hobbyFresh && urlNotExpired) {
       return profile;
