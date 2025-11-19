@@ -1,8 +1,7 @@
 // Milestone Section
 import React, { useEffect, useState } from "react";
+import MilestoneCard from "./MilestoneCard";
 import { useProfile } from "../contexts/ProfileContext";
-//import { usePhotos } from "../contexts/PhotoContext";
-//import { useMilestones } from "../contexts/MilestoneContext";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 
 type MilestoneDto = {
@@ -19,7 +18,6 @@ type MilestoneDto = {
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 const MilestoneSection: React.FC = () => {
-  //const [milestones, setMilestones] = useState<MilestoneDto[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTask, setNewTask] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
@@ -29,11 +27,12 @@ const MilestoneSection: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [hobbyTag, setHobbyTag] = useState<string | null>(null);
   const {profile, getProfile, refreshProfile, invalidateHobbies} = useProfile();
-  //const {photos, getPhotos} = usePhotos();
-  //const {milestones, getMilestones, refreshMilestones} = useMilestones();
   const {photos, milestones, getPhotos, invalidatePhotos, getMilestones, refreshMilestones} = usePhotoMilestone();
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
+  const [selectedMilestone, setSelectedMilestone] = useState<MilestoneDto | null>(null);
+
+
   //const [selectedTag, setSelectedTag] = useState<string>("All");
   //const [filteredMilestones, setFilteredMilestones] = useState<MilestoneDto[]>([]);
   //const [flatMilestones, setFlatMilestones] = useState<MilestoneDto[]>([]);
@@ -207,49 +206,66 @@ const MilestoneSection: React.FC = () => {
   const MilestoneItem: React.FC<{
     milestone: MilestoneDto;
     refresh: () => void;
-  }> = ({ milestone, refresh }) => {
+    onSelect: (m: MilestoneDto) => void;
+  }> = ({ milestone, refresh, onSelect }) => {
     const [expanded, setExpanded] = useState(false);
 
-    const handleCreateSubtaskClick = () => {
+    const handleCreateSubtaskClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
       setParentId(milestone.id); // set this milestone as parent
       setShowAddModal(true); // open modal
     };
 
     return (
-      <li className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm">
-        <div className="flex justify-between items-center">
-          <span
-            className="cursor-pointer font-medium text-gray-800 hover:text-[#b99547] transition"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? "▼" : "▶"} {milestone.task}
-          </span>
-
-          <div className="flex gap-3 text-lg font-semibold">
-            <button
-              className="text-[#b99547] hover:text-[#a07f36] transition"
-              onClick={handleCreateSubtaskClick}
+      <>
+        {/* Milestone Item */}
+        <li className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(milestone);
+          }}
+        >
+          <div className="flex justify-between items-center">
+            <span
+              className="cursor-pointer font-medium text-gray-800 hover:text-[#b99547] transition"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!expanded);
+              }}
             >
-              +
-            </button>
+              <span>{expanded ? "▼" : "▶"}</span>
+              {milestone.task}
+            </span>
 
-            <button
-              className="text-red-500 hover:text-red-700 transition"
-              onClick={() => deleteMilestone(milestone.id)}
-            >
-              −
-            </button>
+            <div className="flex gap-3 text-lg font-semibold">
+              <button
+                className="text-[#b99547] hover:text-[#a07f36] transition"
+                onClick={handleCreateSubtaskClick}
+              >
+                +
+              </button>
+
+              <button
+                className="text-red-500 hover:text-red-700 transition"
+                onClick={(e) =>{ 
+                  e.stopPropagation();
+                  deleteMilestone(milestone.id)
+                }}
+              >
+                −
+              </button>
+            </div>
           </div>
-        </div>
 
-        {expanded && milestone.subMilestones?.length > 0 && (
-          <ul className="pl-6 mt-3 border-l-2 border-[#b99547]/50 space-y-3">
-            {milestone.subMilestones.map((sub) => (
-              <MilestoneItem key={sub.id} milestone={sub} refresh={refresh} />
-            ))}
-          </ul>
-        )}
-      </li>
+          {expanded && milestone.subMilestones?.length > 0 && (
+            <ul className="pl-6 mt-3 border-l-2 border-[#b99547]/50 space-y-3">
+              {milestone.subMilestones.map((sub) => (
+                <MilestoneItem key={sub.id} milestone={sub} refresh={refresh} onSelect={onSelect}/>
+              ))}
+            </ul>
+          )}
+        </li>
+      </>
     );
   };
 
@@ -285,9 +301,17 @@ const MilestoneSection: React.FC = () => {
       {/* Root level list */}
       <ul className="space-y-3">
         {(milestones ?? []).map((m) => (
-          <MilestoneItem key={m.id} milestone={m} refresh={getMilestones} />
+          <MilestoneItem key={m.id} milestone={m} refresh={getMilestones} onSelect={setSelectedMilestone} />
         ))}
       </ul>
+
+      {/* Root Level Modal */}
+      {selectedMilestone && (
+        <MilestoneCard
+          milestone={selectedMilestone}
+          onClose={() => setSelectedMilestone(null)}
+        />
+      )}
 
       {/* Modal for creating milestone */}
       {showAddModal && (

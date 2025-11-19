@@ -1,46 +1,22 @@
 import React, { use, useEffect, useState } from "react";
 import EditProfileModal from "../components/EditProfileModal.tsx";
-import PhotoCard from "../components/PhotoCard.tsx";
 import MilestoneSection from "../components/MilestoneSection.tsx";
+import PhotoSection from "../components/PhotoSection.tsx";
 import { useProfile } from "../contexts/ProfileContext.tsx";
-import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext.tsx";
-
-
-type PhotoDto = {
-  topic: string;
-  imageUrl: string;
-  description: string;
-  uploadDate: string;
-  taggedMilestoneIds: number[];
-};
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
 
 const ProfilePage: React.FC = () => {
-  const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [selectedTag, setSelectedTag] = useState<string>("All");
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "milestones">("photos");
   const { profile, loading, error, getProfile, refreshProfile , addHobby, invalidateHobbies } = useProfile();
-  const { photos, getPhotos, loadingPhotos, errorPhotos, milestoneMap } = usePhotoMilestone();
-
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // fetch photos from cache
-        const photosData = await getPhotos();
-        if (!photosData) throw new Error("Failed to fetch photos");
-        if (photosData) setFilteredPhotos(photosData);
-
         // fetch profile from cache
         const profileData = await getProfile();
         if (!profileData) throw new Error("Failed to fetch profile");
-        if (profileData) {
-          setTags(profileData.hobbies);
-        }
         console.log("Fetched hobbies:", profileData.hobbies);
       } catch (err) {
         console.error(err);
@@ -49,15 +25,6 @@ const ProfilePage: React.FC = () => {
 
     fetchData();
   }, []);
-
-
-  useEffect(() => {
-    if (selectedTag === "All") {
-      setFilteredPhotos(photos ?? []);
-    } else {
-      setFilteredPhotos((photos ?? []).filter((photo) => photo.topic === selectedTag));
-    }
-  }, [selectedTag, photos]);
 
   if (loading && !profile) {
     return <div className="loading-screen">Loading profile...</div>;
@@ -102,7 +69,7 @@ const ProfilePage: React.FC = () => {
                 hobbies: profile.hobbies,
               }}
               onClose={() => setIsEditing(false)}
-              onSave={(updatedProfile) => {
+              onSave={() => {
                 refreshProfile().catch(console.error);
                 setIsEditing(false);
               }}
@@ -139,53 +106,7 @@ const ProfilePage: React.FC = () => {
       </div>
       {/* Tab Content */}
       {activeTab === "photos" ? (
-        <>
-          {/* Photos Section */}
-          <h1 className="text-2xl font-bold mb-4 text-gray-900">My Photos</h1>
-          <div className="mb-6 flex items-center gap-2">
-            <label htmlFor="tagFilter" className="font-medium text-gray-800">
-              Filter by tag:
-            </label>
-            <select
-              id="tagFilter"
-              className="border border-gray-300 rounded px-2 py-1 text-black"
-              value={selectedTag}
-              onChange={(e) => setSelectedTag(e.target.value)}
-            >
-              <option value="All">All</option>
-              {tags.map((tag) => (
-                <option key={tag} value={tag}>{tag}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredPhotos.map((photo, index) => (
-              <div 
-                key={index}
-                className="rounded-xl shadow-md overflow-hidden border border-gray-200"
-                onClick={() => setSelectedPhoto(photo)}>
-                <img
-                  src={photo.imageUrl}
-                  alt={photo.topic}
-                  className="w-full h-48 object-cover"
-                />
-              </div>
-            ))}
-          </div>
-
-          {selectedPhoto && (
-            <PhotoCard
-              imageUrl={selectedPhoto.imageUrl}
-              topic={selectedPhoto.topic}
-              description={selectedPhoto.description}
-              uploadDate={selectedPhoto.uploadDate}
-              taggedMilestoneIds={selectedPhoto.taggedMilestoneIds}
-              onClose={() => setSelectedPhoto(null)}
-            />
-          )}
-        </>
-        
+        <PhotoSection />
       ):(
         <MilestoneSection />
       )}
