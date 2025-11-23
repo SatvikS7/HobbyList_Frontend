@@ -9,37 +9,14 @@ import React, {
 } from "react";
 
 import { useAuth } from "../contexts/AuthContext";
-
-const API_BASE = import.meta.env.VITE_BACKEND_BASE;
-
-// ---------- Types ----------
-
-// Milestone 
-export type MilestoneDto = {
-    id: number;
-    task: string;
-    dueDate: string;
-    isCompleted: boolean;
-    parentId: number | null;
-    subMilestones: MilestoneDto[];
-    taggedPhotoIds: number[];
-    hobbyTag: string | null;
-}
+import { type MilestoneDto, type PhotoDto } from "../types";
+import { photoService } from "../services/photoService";
+import { milestoneService } from "../services/milestoneService";
 
 type MilestoneCacheShape = {
     milestones: MilestoneDto[] | null;
     isFresh: boolean; // true => cache is fresh
 }
-
-// Photo
-export type PhotoDto = {
-  id: number;
-  topic: string;
-  imageUrl: string;
-  description: string;
-  uploadDate: string; 
-  taggedMilestoneIds: number[]
-};
 
 type PhotoCacheShape = {
     photos: PhotoDto[] | null;
@@ -139,7 +116,7 @@ const PhotoMilestoneContext = createContext<PhotoMilestoneContextValue | undefin
 // ---------- Provider ----------
 export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // ---------- Local storage keys & constants ----------
-    const { userId, isLoggedIn } = useAuth();
+    const { userId } = useAuth();
 
     const PHOTO_URL_TTL_MS = 5 * 60 * 1000; 
 
@@ -220,22 +197,6 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         });
     }, [PHOTO_LS_KEY, MILESTONE_LS_KEY, photos, lastFetchTs, isPhotoCacheFresh, milestones, isMilestoneCacheFresh]);
 
-    const fetchMilestonesFromServer = async (): Promise<MilestoneDto[]> => {
-            const token = sessionStorage.getItem("jwt");
-            if (!token) throw new Error("Unauthenticated: missing jwt");
-    
-            const res = await fetch(`${API_BASE}/milestones`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-    
-            if (!res.ok) {
-                throw new Error(`Failed to fetch milestones: ${res.status} ${res.statusText}`);
-            }
-    
-            const data: MilestoneDto[] = await res.json();
-            return data;
-        };
-    
         const getMilestones = async (): Promise<MilestoneDto[] | null> => {
             if (milestones && isMilestoneCacheFresh) {
                 return milestones;
@@ -248,7 +209,7 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
             const p = (async () => {
                 setLoadingMilestones(true);
                 try {
-                    const fetchedMilestones = await fetchMilestonesFromServer();
+                    const fetchedMilestones = await milestoneService.getMilestones();
                     setMilestones(fetchedMilestones);
                     setIsMilestoneCacheFresh(true);
                     return fetchedMilestones;
@@ -276,7 +237,7 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
 
             setLoadingMilestones(true);
             try {
-                const freshMilestones = await fetchMilestonesFromServer();
+                const freshMilestones = await milestoneService.getMilestones();
                 setMilestones(freshMilestones);
                 setIsMilestoneCacheFresh(true);
                 return freshMilestones;
@@ -290,23 +251,6 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
     
         const invalidateMilestones = () => {
             setIsMilestoneCacheFresh(false);
-        };
-
-        const fetchPhotosFromServer = async (): Promise<PhotoDto[]> => {
-            const token = sessionStorage.getItem("jwt");
-            if (!token) throw new Error("Unauthenticated: missing jwt");   
-    
-            const res = await fetch(`${API_BASE}/photos`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-    
-            if (!res.ok) {
-                const errorMsg = `Failed to fetch photos: ${res.status} ${res.statusText}`;
-                throw new Error(errorMsg);
-            }
-    
-            const data: PhotoDto[] = await res.json();
-            return data;
         };
     
         const getPhotos = async (): Promise<PhotoDto[] | null> => {
@@ -323,7 +267,7 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
             const p = (async () => {
                 setLoadingPhotos(true);
                 try {
-                    const fetchedPhotos = await fetchPhotosFromServer();
+                    const fetchedPhotos = await photoService.getPhotos();
                     setPhotos(fetchedPhotos);
                     setLastFetchTs(Date.now());
                     setIsPhotoCacheFresh(true);
@@ -352,7 +296,7 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
     
             setLoadingPhotos(true);
             try {
-                const freshPhotos = await fetchPhotosFromServer();
+                const freshPhotos = await photoService.getPhotos();
                 setPhotos(freshPhotos);
                 setLastFetchTs(Date.now());
                 setIsPhotoCacheFresh(true);

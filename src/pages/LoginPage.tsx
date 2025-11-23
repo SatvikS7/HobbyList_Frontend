@@ -1,90 +1,116 @@
-import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
+import { authService } from "../services/authService";
+import "../App.css";
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
-const API_BASE = import.meta.env.VITE_BACKEND_BASE;
+type LoginFormInputs = z.infer<typeof loginSchema>;
 
 function LoginPage() {
-    const navigate = useNavigate();
-    const { login } = useAuth();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = async(e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: "POST", 
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ email, password }),
-            });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+  });
 
-            if (!response.ok) {
-                throw new Error(`Login failed: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            console.log("Login successful:", data);
-            sessionStorage.setItem("jwt", data.token);
-            login(data.token);
-            alert("Login successful!");
-            if(data.newAccount) {
-                navigate('/onboarding-page')
-            } else {
-                navigate('/home-page')
-            }
-        } catch (error) {
-            console.error("Error logging in:", error);
-            alert("Login failed. Please try again.");
+  const onSubmit = async (data: LoginFormInputs) => {
+    setIsLoading(true);
+    try {
+      const response = await authService.login(data.email, data.password);
+      
+      if (response.token) {
+        login(response.token);
+        toast.success("Login successful!");
+        
+        if (response.newAccount) {
+          navigate("/onboarding-page");
+        } else {
+          navigate("/home-page");
         }
-    };
+      } else {
+        toast.error("Login failed: No token received");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      // Extract error message if available
+      let errorMessage = "Invalid credentials";
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (typeof error.response.data === 'object') {
+          errorMessage = error.response.data.message || error.response.data.error || JSON.stringify(error.response.data);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return (
-    <div className="h-screen flex justify-center items-center bg-white">
-        <div className="flex flex-col items-center justify-center border-2 border-black rounded-[5%] bg-gradient-to-br from-[#fadd9e] to-[#daba76] p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-[#000000] mb-6">Login</h1>
-
-        <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full">
-            <label className="flex flex-col text-black font-medium">
-            Email:
+  return (
+    <div className="auth-container">
+      <div className="auth-box">
+        <h2>Welcome Back</h2>
+        <p className="auth-subtitle">Login to continue to HobbyList</p>
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
             <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                name="email"
-                required
-                className="mt-1 p-2 border border-white rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              {...register("email")}
+              className={errors.email ? "input-error" : ""}
             />
-            </label>
+            {errors.email && <span className="error-message">{errors.email.message}</span>}
+          </div>
 
-            <label className="flex flex-col text-black font-medium">
-            Password:
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
             <input
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                name="password"
-                required
-                className="mt-1 p-2 border border-white rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              {...register("password")}
+              className={errors.password ? "input-error" : ""}
             />
-            </label>
+            {errors.password && <span className="error-message">{errors.password.message}</span>}
+          </div>
 
-            <button
-            type="submit"
-            className="mt-4 px-4 py-2 rounded-lg bg-[#c77903] text-white font-semibold hover:bg-[#b36b02] transition-colors duration-200"
-            >
-            Login
-            </button>
+          <button type="submit" className="btn-primary" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
         </form>
-        </div>
-    </div>
-    )
 
+        <div className="auth-footer">
+          <p>
+            Don't have an account? <Link to="/signup">Sign up</Link>
+          </p>
+          <p>
+            <Link to="/reset-password">Forgot Password?</Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default LoginPage;

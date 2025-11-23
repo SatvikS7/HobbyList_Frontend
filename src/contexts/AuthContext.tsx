@@ -9,7 +9,7 @@ interface AuthContextType {
 }
 
 // --- Helper to decode a JWT ---
-function decodeJwt(token: string | null) {
+function decodeJwt(token: string | null): any {
   if (!token) return null;
 
   try {
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (token) {
       try {
-        const payload: any = decodeJwt(token);
+        const payload = decodeJwt(token);
         setUserId(payload?.sub || null); // or whatever field has the userId
       } catch (e) {
         console.warn("Failed to decode JWT", e);

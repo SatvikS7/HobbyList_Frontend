@@ -1,186 +1,209 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import { useProfile } from "../contexts/ProfileContext";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
+import { photoService } from "../services/photoService";
+import toast from "react-hot-toast";
 
-const UploadPhoto: React.FC = () => {
+function UploadPhoto() {
+  const { token } = useAuth();
+  const { profile, refreshProfile } = useProfile();
+  const { invalidatePhotos } = usePhotoMilestone();
+
   const [file, setFile] = useState<File | null>(null);
   const [filename, setFilename] = useState("");
   const [description, setDescription] = useState("");
   const [topic, setTopic] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const { profile, getProfile, refreshProfile, invalidateHobbies } = useProfile();
-  const [hobbies, setHobbies] = useState<string[]>([]);
-  const { invalidatePhotos } = usePhotoMilestone();
-
-  useEffect(() => {
-    const loadHobbies = async () => {
-      console.log("Loading hobbies for upload photo");
-      try {
-        const p = profile ?? (await getProfile());
-        if (p) setHobbies(p.hobbies);
-      } catch (error) {
-        console.error("Failed to load hobbies:", error);
-      }
-    };
-    loadHobbies();
-  }, [profile, getProfile]);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      setFilename(selectedFile.name); // default filename to actual file name
+      setFile(e.target.files[0]);
+      setFilename(e.target.files[0].name);
     }
-  };
-
-  const handleTopicChange = (value: string) => {
-    setTopic(value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      alert("Please select a file before submitting.");
+      toast.error("Please select a file before submitting.");
+      return;
+    }
+    if (!token) {
+      toast.error("Not authenticated");
       return;
     }
 
     try {
       setIsUploading(true);
+      setUploadProgress(0);
 
-      const token = sessionStorage.getItem("jwt");
-      if (!token) {
-        alert("Not authenticated");
-        return;
-      }
+      // 1. Get Presigned URL
+      const uploadUrl = await photoService.getUploadUrl(filename, file.type);
 
-      const getURLPayload = {
-        filename,
-        contentType: file.type,
-      };
-      // Request presigned URL
-      const presignResponse = await fetch("http://localhost:8080/api/photos/get-upload-url", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(getURLPayload),
+      // 2. Upload to S3
+      await photoService.uploadFileToS3(uploadUrl, file, (progress) => {
+        setUploadProgress(progress);
       });
 
-      if (!presignResponse.ok) {
-        throw new Error("Failed to get presigned URL");
-      }
-
-      const uploadUrl = await presignResponse.text(); // backend returns URL as plain string
-
-      // Upload file directly to S3
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": file.type,
-        },
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error("Failed to upload file to S3");
-      }
-
-      // 3️⃣ Notify backend with metadata
-      console.log("Description before payload:", description);
-
-      const saveUrlPayload = {
+      // 3. Save Metadata
+      const cleanUrl = uploadUrl.split("?")[0];
+      await photoService.savePhotoMetadata({
         topic,
-        imageUrl: uploadUrl.split("?")[0], // clean S3 URL without query params
+        imageUrl: cleanUrl,
         filename,
         size: file.size,
         contentType: file.type,
         description,
         uploadDate: new Date().toISOString(),
-      };
-
-      const saveResponse = await fetch("http://localhost:8080/api/photos/save-url", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(saveUrlPayload),
       });
 
-      if (!saveResponse.ok) {
-        throw new Error("Failed to save photo metadata");
-      }
-
+      // 4. Refresh Data
       invalidatePhotos();
-      alert("Upload successful!");
-      if (!hobbies.includes(topic)) {
+      if (!profile?.hobbies.includes(topic)) {
         await refreshProfile();
       }
+
+      toast.success("Upload successful!");
+      
+      // Reset form
       setFile(null);
       setFilename("");
       setDescription("");
       setTopic("");
+      setUploadProgress(0);
+      
+      // Reset file input manually
+      const fileInput = document.getElementById("file-upload") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
+
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Upload failed. Check console for details.");
+      toast.error("Upload failed. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto bg-gradient-to-br from-[#fadd9e] to-[#daba76] rounded-[16px] shadow-lg">
-      <h2 className="text-xl font-bold mb-4 text-black">Upload a Photo</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Drop/Select box */}
-        <label
-          htmlFor="fileInput"
-          className="block cursor-pointer border-2 border-dashed border-black rounded-lg p-6 text-center bg-white text-black"
-        >
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-            id="fileInput"
-          />
-          {file ? file.name : "Click or drag a photo here"}
-        </label>
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Upload a Photo
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Share your hobby moments
+          </p>
+        </div>
+        
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div className="mb-4">
+              <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-1">
+                Topic / Hobby
+              </label>
+              <input
+                id="topic"
+                name="topic"
+                type="text"
+                required
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="e.g. Hiking, Cooking"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={3}
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Tell us about this photo..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
 
-        {/* Description */}
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          className="w-full p-2 border border-black rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
-        />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Photo
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-500 transition-colors">
+                <div className="space-y-1 text-center">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    stroke="currentColor"
+                    fill="none"
+                    viewBox="0 0 48 48"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <div className="flex text-sm text-gray-600 justify-center">
+                    <label
+                      htmlFor="file-upload"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                    >
+                      <span>Upload a file</span>
+                      <input
+                        id="file-upload"
+                        name="file-upload"
+                        type="file"
+                        className="sr-only"
+                        onChange={handleFileChange}
+                        accept="image/*"
+                      />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                </div>
+              </div>
+              {filename && (
+                <p className="mt-2 text-sm text-gray-600">Selected: {filename}</p>
+              )}
+            </div>
+          </div>
 
-        {/* Topic */}
-        <input
-          list="hobby-list"
-          value={topic}
-          onChange={(e) => handleTopicChange(e.target.value)}
-          placeholder="Topic (select or type)"
-          className="w-full p-2 border border-black rounded bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#b99547]"
-        />
-        <datalist id="hobby-list">
-          {hobbies.map((hobby) => (
-            <option key={hobby} value={hobby} />
-          ))}
-        </datalist>
+          {isUploading && (
+            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div 
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+              <p className="text-xs text-center mt-1 text-gray-500">{uploadProgress}% Uploaded</p>
+            </div>
+          )}
 
-        <button
-          type="submit"
-          disabled={isUploading}
-          className="w-full py-2 rounded-lg bg-[#b99547] text-white font-semibold hover:bg-[#a07f36] transition-colors duration-200"
-        >
-          {isUploading ? "Uploading..." : "Upload"}
-        </button>
-      </form>
+          <div>
+            <button
+              type="submit"
+              disabled={isUploading}
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                isUploading 
+                  ? "bg-indigo-400 cursor-not-allowed" 
+                  : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              }`}
+            >
+              {isUploading ? "Uploading..." : "Upload Photo"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
-
-};
+}
 
 export default UploadPhoto;
