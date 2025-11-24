@@ -109,7 +109,7 @@ function UploadPhoto() {
                 name="topic"
                 type="text"
                 required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#b99547] focus:border-[#b99547] focus:z-10 sm:text-sm"
                 placeholder="e.g. Hiking, Cooking"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
@@ -124,7 +124,7 @@ function UploadPhoto() {
                 id="description"
                 name="description"
                 rows={3}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#b99547] focus:border-[#b99547] focus:z-10 sm:text-sm"
                 placeholder="Tell us about this photo..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -135,7 +135,7 @@ function UploadPhoto() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Photo
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-500 transition-colors">
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-[#b99547] transition-colors">
                 <div className="space-y-1 text-center">
                   <svg
                     className="mx-auto h-12 w-12 text-gray-400"
@@ -154,7 +154,7 @@ function UploadPhoto() {
                   <div className="flex text-sm text-gray-600 justify-center">
                     <label
                       htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-[#b99547] hover:text-[#a07f36] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#b99547]"
                     >
                       <span>Upload a file</span>
                       <input
@@ -180,7 +180,7 @@ function UploadPhoto() {
           {isUploading && (
             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
               <div 
-                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" 
+                className="bg-[#b99547] h-2.5 rounded-full transition-all duration-300" 
                 style={{ width: `${uploadProgress}%` }}
               ></div>
               <p className="text-xs text-center mt-1 text-gray-500">{uploadProgress}% Uploaded</p>
@@ -193,8 +193,8 @@ function UploadPhoto() {
               disabled={isUploading}
               className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
                 isUploading 
-                  ? "bg-indigo-400 cursor-not-allowed" 
-                  : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  ? "bg-[#d4b97b] cursor-not-allowed" 
+                  : "bg-[#b99547] hover:bg-[#a07f36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
               }`}
             >
               {isUploading ? "Uploading..." : "Upload Photo"}

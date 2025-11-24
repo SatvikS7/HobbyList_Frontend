@@ -14,6 +14,7 @@ export interface CreateMilestoneRequest {
   dueDate: string;
   isCompleted: boolean;
   parentId?: number | null;
+  taggedPhotoIds?: number[];
 }
 
 export interface PhotoDto {

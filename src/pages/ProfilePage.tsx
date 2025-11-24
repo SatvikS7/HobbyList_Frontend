@@ -3,19 +3,17 @@ import { useSearchParams } from "react-router-dom";
 import { useProfile } from "../contexts/ProfileContext";
 import EditProfileModal from "../components/EditProfileModal";
 import MilestoneSection from "../components/MilestoneSection";
-import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
+import PhotoSection from "../components/PhotoSection";
 
 function ProfilePage() {
   const { profile, getProfile, updateProfileState } = useProfile();
-  const { photos, getPhotos, loadingPhotos, errorPhotos } = usePhotoMilestone();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
-    getPhotos();
     getProfile();
-  }, [getPhotos, getProfile]);
+  }, [getProfile]);
 
   // Tab state managed by URL params
   const activeTab = searchParams.get("tab") || "photos";
@@ -24,18 +22,10 @@ function ProfilePage() {
     setSearchParams({ tab });
   };
 
-  // Filter photos by user's hobbies/topics if needed, or just show all user's photos
-  // Assuming 'photos' from context are all photos. If we want only user's photos, backend should filter or we filter here.
-  // For now, let's assume 'photos' contains all photos and we might want to show only those related to user's hobbies or uploaded by user.
-  // But the requirement says "Profile Page", usually showing user's own content.
-  // The current implementation of getPhotos fetches ALL photos.
-  // We might need to filter by user ID if we had it, or maybe the backend 'getPhotos' returns all public photos.
-  // Let's stick to the previous behavior but cleaner.
-
   if (!profile) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b99547]"></div>
       </div>
     );
   }
@@ -63,7 +53,7 @@ function ProfilePage() {
               <div>
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
                 >
                   Edit Profile
                 </button>
@@ -80,7 +70,7 @@ function ProfilePage() {
                   profile.hobbies.map((hobby, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
+                      className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-[#f5e6c8] text-[#785c16]"
                     >
                       {hobby}
                     </span>
@@ -101,7 +91,7 @@ function ProfilePage() {
                 onClick={() => handleTabChange("photos")}
                 className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${
                   activeTab === "photos"
-                    ? "border-indigo-500 text-indigo-600"
+                    ? "border-[#b99547] text-[#b99547]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
@@ -111,7 +101,7 @@ function ProfilePage() {
                 onClick={() => handleTabChange("milestones")}
                 className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${
                   activeTab === "milestones"
-                    ? "border-indigo-500 text-indigo-600"
+                    ? "border-[#b99547] text-[#b99547]"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
@@ -121,38 +111,7 @@ function ProfilePage() {
           </div>
 
           <div className="p-6">
-            {activeTab === "photos" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {loadingPhotos ? (
-                  <div className="col-span-full flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  </div>
-                ) : errorPhotos ? (
-                  <div className="col-span-full text-center py-12 text-red-500">
-                    Error loading photos: {errorPhotos}
-                  </div>
-                ) : photos && photos.length > 0 ? (
-                  photos.map((photo) => (
-                    <div key={photo.id} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                      <img
-                        src={photo.imageUrl}
-                        alt={photo.description || "User photo"}
-                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-300 flex items-end p-4">
-                        <p className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-sm truncate w-full">
-                          {photo.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-12 text-gray-500">
-                    No photos uploaded yet.
-                  </div>
-                )}
-              </div>
-            )}
+            {activeTab === "photos" && <PhotoSection />}
 
             {activeTab === "milestones" && <MilestoneSection />}
           </div>

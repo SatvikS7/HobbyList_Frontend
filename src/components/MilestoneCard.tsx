@@ -12,7 +12,7 @@ interface MilestoneCardProps {
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete }) => {
-  const { milestoneMap, photoMap, refreshMilestones } = usePhotoMilestone();
+  const { milestoneMap, photoMap, refreshMilestones, photos } = usePhotoMilestone();
   const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
 
   // Subtask creation state
@@ -21,10 +21,19 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
   const [subtaskDate, setSubtaskDate] = useState("");
   const [subtaskTime, setSubtaskTime] = useState("");
   const [isCreatingSub, setIsCreatingSub] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
 
   const taggedPhotos = milestone.taggedPhotoIds
     .map((id) => photoMap.get(id))
     .filter(Boolean);
+
+  const togglePhotoSelection = (photoId: number) => {
+    setSelectedPhotoIds(prev => 
+      prev.includes(photoId) 
+        ? prev.filter(id => id !== photoId)
+        : [...prev, photoId]
+    );
+  };
 
   const handleAddSubtask = async () => {
     if (!subtaskTask.trim() || !subtaskDate || !subtaskTime) {
@@ -43,12 +52,14 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
         dueDate: isoString,
         isCompleted: false,
         parentId: milestone.id,
+        taggedPhotoIds: selectedPhotoIds,
       });
 
       toast.success("Subtask created!");
       setSubtaskTask("");
       setSubtaskDate("");
       setSubtaskTime("");
+      setSelectedPhotoIds([]);
       setIsAddingSubtask(false);
       await refreshMilestones();
     } catch (error) {
@@ -95,7 +106,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
         >
           {/* Close */}
           <button
-            className="absolute top-3 right-3 text-gray-700 hover:text-black"
+            className="absolute top-3 right-3 text-gray-700 hover:text-black px-2 py-1"
             onClick={onClose}
           >
             X
@@ -104,7 +115,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
           {/* Delete Button */}
           {onDelete && (
             <button
-              className="absolute top-3 right-10 text-red-500 hover:text-red-700 mr-2"
+              className="absolute top-3 right-16 text-red-500 hover:text-red-700 px-2 py-1"
               onClick={() => {
                 if (window.confirm("Are you sure you want to delete this milestone?")) {
                   onDelete();
@@ -132,7 +143,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                     key={p!.id}
                     src={p!.imageUrl}
                     alt={p!.topic}
-                    className="w-20 h-20 object-cover rounded cursor-pointer border border-gray-300"
+                    className="w-20 h-20 object-cover rounded border border-gray-300"
                     onClick={() => setSelectedPhotoId(p!.id)}
                   />
                 ))}
@@ -195,6 +206,39 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                     </button>
                   </div>
                 </div>
+
+                {/* Photo Selection for Subtask */}
+                <div className="mt-4 border-t border-gray-200 pt-3">
+                  <h4 className="text-xs font-medium text-gray-700 mb-2">Tag Photos (Optional)</h4>
+                  {photos && photos.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-gray-200 rounded-md bg-white">
+                      {photos.map((photo) => (
+                        <div 
+                          key={photo.id} 
+                          className={`relative cursor-pointer group ${
+                            selectedPhotoIds.includes(photo.id) ? "ring-2 ring-[#b99547]" : ""
+                          }`}
+                          onClick={() => togglePhotoSelection(photo.id)}
+                        >
+                          <img
+                            src={photo.imageUrl}
+                            alt={photo.topic}
+                            className="w-12 h-12 object-cover rounded-md"
+                          />
+                          {selectedPhotoIds.includes(photo.id) && (
+                            <div className="absolute inset-0 bg-[#b99547]/20 rounded-md flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white drop-shadow-md" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 italic">No photos available.</p>
+                  )}
+                </div>  
               </div>
             )}
 
@@ -206,18 +250,6 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
           </div>
         </div>
       </div>
-
-      {/* Open selected photo in PhotoCard */}
-      {selectedPhoto && (
-        <PhotoCard
-          imageUrl={selectedPhoto.imageUrl}
-          topic={selectedPhoto.topic}
-          description={selectedPhoto.description}
-          uploadDate={selectedPhoto.uploadDate}
-          taggedMilestoneIds={selectedPhoto.taggedMilestoneIds}
-          onClose={() => setSelectedPhotoId(null)}
-        />
-      )}
     </>
   );
 };

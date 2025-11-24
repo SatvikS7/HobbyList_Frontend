@@ -8,16 +8,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { type MilestoneDto } from "../types";
 
 function MilestoneSection() {
-  const { milestones, refreshMilestones } = usePhotoMilestone();
+  const { milestones, refreshMilestones, photos } = usePhotoMilestone();
   
   const [newTask, setNewTask] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
   const [newDueTime, setNewDueTime] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
 
   // Filter states
   const [filterStatus, setFilterStatus] = useState<"ALL" | "COMPLETED" | "PENDING">("ALL");
   const [selectedMilestone, setSelectedMilestone] = useState<MilestoneDto | null>(null);
+
+  const togglePhotoSelection = (photoId: number) => {
+    setSelectedPhotoIds(prev => 
+      prev.includes(photoId) 
+        ? prev.filter(id => id !== photoId)
+        : [...prev, photoId]
+    );
+  };
 
   const handleCreateMilestone = async () => {
     if (!newTask.trim() || !newDueDate || !newDueTime) {
@@ -37,12 +46,14 @@ function MilestoneSection() {
         task: newTask,
         dueDate: isoString,
         isCompleted: false,
+        taggedPhotoIds: selectedPhotoIds,
       });
 
       toast.success("Milestone created!");
       setNewTask("");
       setNewDueDate("");
       setNewDueTime("");
+      setSelectedPhotoIds([]);
       await refreshMilestones();
     } catch (error) {
       console.error("Error creating milestone:", error);
@@ -65,12 +76,14 @@ function MilestoneSection() {
     }
   };
 
-  const filteredMilestones = (milestones ? milestones : []).filter((m) => {
-    if (filterStatus === "ALL") return true;
-    if (filterStatus === "COMPLETED") return m.isCompleted;
-    if (filterStatus === "PENDING") return !m.isCompleted;
-    return true;
-  });
+  const filteredMilestones = (milestones ? milestones : [])
+    .filter((m) => m.parentId === null) // Only show top-level milestones
+    .filter((m) => {
+      if (filterStatus === "ALL") return true;
+      if (filterStatus === "COMPLETED") return m.isCompleted;
+      if (filterStatus === "PENDING") return !m.isCompleted;
+      return true;
+    });
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -82,7 +95,7 @@ function MilestoneSection() {
             <input
               type="text"
               placeholder="e.g. Complete 5 hikes"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#b99547] focus:border-[#b99547] text-gray-800"
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
             />
@@ -91,7 +104,7 @@ function MilestoneSection() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
             <input
               type="date"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#b99547] focus:border-[#b99547] text-gray-800"
               value={newDueDate}
               onChange={(e) => setNewDueDate(e.target.value)}
             />
@@ -100,7 +113,7 @@ function MilestoneSection() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
             <input
               type="time"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-gray-800"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#b99547] focus:border-[#b99547] text-gray-800"
               value={newDueTime}
               onChange={(e) => setNewDueTime(e.target.value)}
             />
@@ -109,11 +122,44 @@ function MilestoneSection() {
             <button
               onClick={handleCreateMilestone}
               disabled={isCreating}
-              className="w-full bg-indigo-600 text-white p-2 rounded-md hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
+              className="w-full bg-[#b99547] text-white p-2 rounded-md hover:bg-[#a07f36] transition-colors disabled:bg-[#d4b97b]"
             >
               {isCreating ? "Adding..." : "Add"}
             </button>
           </div>
+        </div>
+
+        {/* Photo Selection */}
+        <div className="mt-6">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Tag Photos (Optional)</h3>
+          {photos && photos.length > 0 ? (
+            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-md">
+              {photos.map((photo) => (
+                <div 
+                  key={photo.id} 
+                  className={`relative cursor-pointer group ${
+                    selectedPhotoIds.includes(photo.id) ? "ring-2 ring-[#b99547]" : ""
+                  }`}
+                  onClick={() => togglePhotoSelection(photo.id)}
+                >
+                  <img
+                    src={photo.imageUrl}
+                    alt={photo.topic}
+                    className="w-16 h-16 object-cover rounded-md"
+                  />
+                  {selectedPhotoIds.includes(photo.id) && (
+                    <div className="absolute inset-0 bg-[#b99547]/20 rounded-md flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white drop-shadow-md" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 italic">No photos available to tag.</p>
+          )}
         </div>
       </div>
 
@@ -126,7 +172,7 @@ function MilestoneSection() {
               onClick={() => setFilterStatus(status)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 filterStatus === status
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-[#b99547] text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
@@ -149,8 +195,8 @@ function MilestoneSection() {
               >
                 <MilestoneItem
                   milestone={milestone}
-                  onDelete={() => handleDeleteMilestone(milestone.id)}
-                  onClick={() => setSelectedMilestone(milestone)}
+                  onDelete={handleDeleteMilestone}
+                  onClick={setSelectedMilestone}
                 />
               </motion.div>
             ))
