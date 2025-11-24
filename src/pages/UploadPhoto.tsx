@@ -8,20 +8,32 @@ import toast from "react-hot-toast";
 function UploadPhoto() {
   const { token } = useAuth();
   const { profile, refreshProfile } = useProfile();
-  const { invalidatePhotos } = usePhotoMilestone();
-
+  const { milestoneMap, invalidatePhotos, invalidateMilestones} = usePhotoMilestone();
+  
   const [file, setFile] = useState<File | null>(null);
   const [filename, setFilename] = useState("");
   const [description, setDescription] = useState("");
   const [topic, setTopic] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedMilestoneIds, setSelectedMilestoneIds] = useState<number[]>([]);
+
+  const allMilestones = Array.from(milestoneMap.values());
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
       setFilename(e.target.files[0].name);
     }
+  };
+
+  const toggleMilestoneSelection = (milestoneId: number) => {
+    console.log(milestoneId);
+    setSelectedMilestoneIds(prev => 
+      prev.includes(milestoneId) 
+        ? prev.filter(id => id !== milestoneId)
+        : [...prev, milestoneId]
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,6 +61,11 @@ function UploadPhoto() {
 
       // 3. Save Metadata
       const cleanUrl = uploadUrl.split("?")[0];
+
+      if (selectedMilestoneIds.length > 0) {
+        invalidateMilestones();
+      }
+      
       await photoService.savePhotoMetadata({
         topic,
         imageUrl: cleanUrl,
@@ -57,6 +74,7 @@ function UploadPhoto() {
         contentType: file.type,
         description,
         uploadDate: new Date().toISOString(),
+        taggedMilestoneIds: selectedMilestoneIds,
       });
 
       // 4. Refresh Data
@@ -73,6 +91,7 @@ function UploadPhoto() {
       setDescription("");
       setTopic("");
       setUploadProgress(0);
+      setSelectedMilestoneIds([]);
       
       // Reset file input manually
       const fileInput = document.getElementById("file-upload") as HTMLInputElement;
@@ -88,7 +107,7 @@ function UploadPhoto() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
+      <div className="max-w-2xl w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Upload a Photo
@@ -129,6 +148,44 @@ function UploadPhoto() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
+            </div>
+
+            {/* Milestone Tagging */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tag Milestones (Optional)
+              </label>
+              {allMilestones.length > 0 ? (
+                <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-md p-2 bg-white">
+                  {allMilestones.map((milestone) => (
+                    <div 
+                      key={milestone.id} 
+                      className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-50 ${
+                        selectedMilestoneIds.includes(milestone.id) ? "bg-[#fadd9e]/20" : ""
+                      }`}
+                      onClick={() => toggleMilestoneSelection(milestone.id)}
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center mr-3 ${
+                        selectedMilestoneIds.includes(milestone.id) 
+                          ? "bg-[#b99547] border-[#b99547]" 
+                          : "border-gray-400"
+                      }`}>
+                        {selectedMilestoneIds.includes(milestone.id) && (
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{milestone.task}</p>
+                        <p className="text-xs text-gray-500">Due: {new Date(milestone.dueDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 italic">No milestones available to tag.</p>
+              )}
             </div>
 
             <div className="mb-4">

@@ -38,6 +38,7 @@ export const photoService = {
         size: number;
         contentType: string;
         description: string;
+        taggedMilestoneIds?: number[];
         uploadDate: string;
     }): Promise<void> => {
         await api.post('/photos/save-url', data);
