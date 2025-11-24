@@ -16,6 +16,9 @@ import HobbyList.example.HobbyList.model.Photo;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
+import HobbyList.example.HobbyList.repository.MilestoneRepository;
+import HobbyList.example.HobbyList.model.Milestone;
+import java.util.ArrayList;
 import HobbyList.example.HobbyList.service.HobbyService;
 import HobbyList.example.HobbyList.service.S3Service;
 import HobbyList.example.HobbyList.service.PhotoService;
@@ -24,7 +27,6 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -35,16 +37,18 @@ public class PhotoController {
     private final S3Service s3Service;
     private final HobbyService hobbyService;
     private final PhotoService photoService;
+    private final MilestoneRepository milestoneRepository;
 
-    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service, HobbyService hobbyService, PhotoService photoService) {
+    public PhotoController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service,
+            HobbyService hobbyService, PhotoService photoService, MilestoneRepository milestoneRepository) {
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.s3Service = s3Service;
         this.hobbyService = hobbyService;
         this.photoService = photoService;
+        this.milestoneRepository = milestoneRepository;
     }
 
-    
     @GetMapping
     public ResponseEntity<List<PhotoDto>> getAllPhotos(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
@@ -70,7 +74,7 @@ public class PhotoController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        String bucketName = "hobbylist-photos"; 
+        String bucketName = "hobbylist-photos";
         String key = "photos/" + user.getId() + "/" + UUID.randomUUID() + "-" + presignRequest.filename(); // Define your key structure
         String uploadUrl = s3Service.generateUploadUrl(bucketName, key, presignRequest.contentType());
 
@@ -89,7 +93,18 @@ public class PhotoController {
         photo.setSize(photoDto.size());
         photo.setContentType(photoDto.contentType());
         photo.setDescription(photoDto.description());
-        photoRepository.save(photo);
+        Photo savedPhoto = photoRepository.save(photo);
+
+        if (photoDto.taggedMilestoneIds() != null && !photoDto.taggedMilestoneIds().isEmpty()) {
+            List<Milestone> milestones = milestoneRepository.findAllById(photoDto.taggedMilestoneIds());
+            for (Milestone milestone : milestones) {
+                if (milestone.getTaggedPhotos() == null) {
+                    milestone.setTaggedPhotos(new ArrayList<>());
+                }
+                milestone.getTaggedPhotos().add(savedPhoto);
+            }
+            milestoneRepository.saveAll(milestones);
+        }
 
         hobbyService.addHobbyToUser(user, photoDto.topic());
 
