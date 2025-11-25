@@ -38,11 +38,11 @@ public class MilestoneController {
     private final int MAX_DEPTH = 5;
 
     public MilestoneController(MilestoneRepository milestoneRepository,
-                               UserRepository userRepository,
-                               PhotoRepository photoRepository,
-                               MilestoneMapper milestoneMapper,
-                               MilestoneService milestoneService,
-                               HobbyService hobbyService) {
+            UserRepository userRepository,
+            PhotoRepository photoRepository,
+            MilestoneMapper milestoneMapper,
+            MilestoneService milestoneService,
+            HobbyService hobbyService) {
         this.milestoneRepository = milestoneRepository;
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
@@ -57,9 +57,11 @@ public class MilestoneController {
     @GetMapping
     public ResponseEntity<?> getParentMilestones(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        // If you want a hobby filter, implement a repository method. For now we return all parent roots.
+        // If you want a hobby filter, implement a repository method. For now we return
+        // all parent roots.
         List<Milestone> roots = milestoneRepository.findByUserIdAndParentIsNull(user.getId());
         List<MilestoneDto> dtoRoots = roots.stream()
                 .map(milestoneService::toDto)
@@ -72,13 +74,23 @@ public class MilestoneController {
     // If parent provided, ensure parent depth < 5.
     //
     // Request body example (JSON):
-    // { "task": "Practice chords", "dueDate": "2025-11-01T15:00:00Z", "isCompleted": false, "parentId": 12 }
+    // { "task": "Practice chords", "dueDate": "2025-11-01T15:00:00Z",
+    // "isCompleted": false, "parentId": 12 }
     // ---------------------------
-    @PostMapping("/create-milestone")
+    // ---------------------------
+    // Create a new task. Optional parent id can be provided.
+    // If parent provided, ensure parent depth < 5.
+    //
+    // Request body example (JSON):
+    // { "task": "Practice chords", "dueDate": "2025-11-01T15:00:00Z",
+    // "isCompleted": false, "parentId": 12 }
+    // ---------------------------
+    @PostMapping
     public ResponseEntity<?> createMilestone(Authentication authentication,
-                                             @RequestBody MilestoneDto req) {
+            @RequestBody MilestoneDto req) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         Milestone m = new Milestone();
         m.setTask(req.task());
@@ -119,8 +131,8 @@ public class MilestoneController {
         m.setHobbyTag(req.hobbyTag());
 
         Milestone saved = milestoneRepository.save(m);
-        
-        if(req.hobbyTag() != null && !req.hobbyTag().isEmpty()) {
+
+        if (req.hobbyTag() != null && !req.hobbyTag().isEmpty()) {
             hobbyService.addHobbyToUser(user, req.hobbyTag());
         }
 
@@ -132,13 +144,15 @@ public class MilestoneController {
     // We make this transactional to ensure cascade deletes succeed.
     // ---------------------------
     @Transactional
-    @DeleteMapping("/delete-milestone/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMilestone(Authentication authentication, @PathVariable Long id) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         Optional<Milestone> targetOpt = milestoneRepository.findByIdWithChildren(id);
-        if (targetOpt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (targetOpt.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
         Milestone target = targetOpt.get();
         if (target.getUser() == null || target.getUser().getId() != user.getId()) {
@@ -153,15 +167,17 @@ public class MilestoneController {
     // Update a task (partial): update dueDate and/or task name
     // ---------------------------
 
-    @PatchMapping("/update-milestone/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<?> updateMilestone(Authentication authentication,
-                                             @PathVariable Long id,
-                                             @RequestBody MilestoneDto req) {
+            @PathVariable Long id,
+            @RequestBody MilestoneDto req) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         Optional<Milestone> opt = milestoneRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (opt.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
         Milestone m = opt.get();
         if (m.getUser() == null || m.getUser().getId() != user.getId()) {
@@ -175,71 +191,113 @@ public class MilestoneController {
     }
 
     // ---------------------------
-    // Get all milestones (both parent and child) for the user that don't have a photo tagged to them
+    // Get all milestones (both parent and child) for the user that don't have a
+    // photo tagged to them
     // ---------------------------
     @GetMapping("/no-photo")
     public ResponseEntity<?> getMilestonesWithoutPhoto(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         List<Milestone> result = milestoneRepository.findByUserIdAndTaggedPhotosIsNull(user.getId());
         return ResponseEntity.ok(result.stream().map(milestoneService::toDto).collect(Collectors.toList()));
     }
 
     // ---------------------------
-    // Tag a photo with a milestone and then tag all children recursively with same photo
+    // Tag a photo with a milestone and then tag all children recursively with same
+    // photo
     // ---------------------------
     /*
-    @Transactional
-    @PostMapping("/{milestoneId}/tag-photo/{photoId}")
-    public ResponseEntity<?> tagPhotoForMilestone(Authentication authentication,
-                                                  @PathVariable Long milestoneId,
-                                                  @PathVariable Long photoId) {
-        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-        Optional<Milestone> mOpt = milestoneRepository.findById(milestoneId);
-        if (mOpt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Milestone not found");
-
-        Milestone milestone = mOpt.get();
-        if (milestone.getUser() == null || milestone.getUser().getId() != user.getId()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        Optional<Photo> pOpt = photoRepository.findById(photoId);
-        if (pOpt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Photo not found");
-
-        Photo photo = pOpt.get();
-
-        // set for root milestone and all descendants
-        propagatePhotoTag(milestone, photo);
-
-        return ResponseEntity.ok("Photo tagged to milestone and all children");
-    }
-
-
-    // propagate photo tag to node and all descendants
-    private void propagatePhotoTag(Milestone node, Photo photo) {
-        node.setTaggedPhoto(photo);
-        milestoneRepository.save(node);
-        if (node.getSubtasks() != null) {
-            for (Milestone child : node.getSubtasks()) {
-                propagatePhotoTag(child, photo);
-            }
-        }
-    }
-        */
+     * @Transactional
+     * 
+     * @PostMapping("/{milestoneId}/tag-photo/{photoId}")
+     * public ResponseEntity<?> tagPhotoForMilestone(Authentication authentication,
+     * 
+     * @PathVariable Long milestoneId,
+     * 
+     * @PathVariable Long photoId) {
+     * User user =
+     * userRepository.findByEmail(authentication.getName()).orElse(null);
+     * if (user == null) return
+     * ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+     * 
+     * Optional<Milestone> mOpt = milestoneRepository.findById(milestoneId);
+     * if (mOpt.isEmpty()) return
+     * ResponseEntity.status(HttpStatus.NOT_FOUND).body("Milestone not found");
+     * 
+     * Milestone milestone = mOpt.get();
+     * if (milestone.getUser() == null || milestone.getUser().getId() !=
+     * user.getId()) {
+     * return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+     * }
+     * 
+     * Optional<Photo> pOpt = photoRepository.findById(photoId);
+     * if (pOpt.isEmpty()) return
+     * ResponseEntity.status(HttpStatus.NOT_FOUND).body("Photo not found");
+     * 
+     * Photo photo = pOpt.get();
+     * 
+     * // set for root milestone and all descendants
+     * propagatePhotoTag(milestone, photo);
+     * 
+     * return ResponseEntity.ok("Photo tagged to milestone and all children");
+     * }
+     * 
+     * 
+     * // propagate photo tag to node and all descendants
+     * private void propagatePhotoTag(Milestone node, Photo photo) {
+     * node.setTaggedPhoto(photo);
+     * milestoneRepository.save(node);
+     * if (node.getSubtasks() != null) {
+     * for (Milestone child : node.getSubtasks()) {
+     * propagatePhotoTag(child, photo);
+     * }
+     * }
+     * }
+     */
 
     // optionally: get all milestones (parent + child) for a user
     @GetMapping("/all")
     public ResponseEntity<?> getAllMilestonesForUser(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         List<Milestone> roots = milestoneRepository.findByUserId(user.getId());
         List<MilestoneDto> dtoRoots = roots.stream()
                 .map(milestoneService::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtoRoots);
+    }
+
+    @PostMapping("/{id}/complete-tree")
+    public ResponseEntity<?> completeTree(Authentication authentication, @PathVariable Long id) {
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Optional<Milestone> mOpt = milestoneRepository.findById(id);
+        if (mOpt.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Milestone not found");
+
+        Milestone milestone = mOpt.get();
+        if (milestone.getUser() == null || milestone.getUser().getId() != user.getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Stack<Milestone> st = new Stack<>();
+        st.push(milestone);
+        while (!st.empty()) {
+            Milestone m = st.pop();
+            m.setCompleted(true);
+            milestoneRepository.save(m);
+            if (m.getSubMilestones() != null) {
+                for (Milestone child : m.getSubMilestones()) {
+                    st.push(child);
+                }
+            }
+        }
+        return ResponseEntity.ok("Milestone and all children completed");
     }
 }

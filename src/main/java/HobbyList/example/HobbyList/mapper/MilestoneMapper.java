@@ -20,6 +20,7 @@ public class MilestoneMapper {
     }
 
     public void updateMilestoneFromDto(MilestoneDto dto, Milestone milestone) {
+        System.out.println("dto: " + dto);
         if (dto == null || milestone == null) {
             return;
         }

@@ -34,8 +34,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
-
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/profile")
@@ -45,7 +43,8 @@ public class ProfileController {
     private final S3Service s3Service;
     private final UserMapper userMapper;
 
-    public ProfileController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service, UserMapper userMapper) {
+    public ProfileController(UserRepository userRepository, PhotoRepository photoRepository, S3Service s3Service,
+            UserMapper userMapper) {
         this.userRepository = userRepository;
         this.photoRepository = photoRepository;
         this.s3Service = s3Service;
@@ -67,11 +66,13 @@ public class ProfileController {
             String key = imageURL.substring(imageURL.indexOf("profile/"));
             presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
         }
-        return ResponseEntity.ok(new ProfileDto(presignedUrl, user.getDescription(), user.getDisplayName(), user.isPrivate(), user.getHobbies()));
+        return ResponseEntity.ok(new ProfileDto(presignedUrl, user.getDescription(), user.getDisplayName(),
+                user.isPrivate(), user.getHobbies()));
     }
 
-    @PostMapping("/get-upload-url")
-    public ResponseEntity<?> generateUploadUrl(@Valid @RequestBody PresignRequest presignRequest, Authentication authentication) {
+    @PostMapping("/photo/upload-url")
+    public ResponseEntity<?> generateUploadUrl(@Valid @RequestBody PresignRequest presignRequest,
+            Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -83,29 +84,29 @@ public class ProfileController {
             Photo oldPhoto = existingProfilePic.get();
             photoRepository.delete(oldPhoto);
         }
-        String bucketName = "hobbylist-photos"; 
+        String bucketName = "hobbylist-photos";
         String key = "profile/" + user.getId() + "-" + presignRequest.filename();
         String uploadUrl = s3Service.generateUploadUrl(bucketName, key, presignRequest.contentType());
 
         return ResponseEntity.ok(uploadUrl);
     }
 
-    @PostMapping("/save-url")
+    @PostMapping("/photo")
     public ResponseEntity<String> saveURL(@Valid @RequestBody PhotoDto photoDto, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Photo photo = new Photo(photoDto.imageUrl(), user, 
-                    photoDto.uploadDate(), photoDto.filename(), 
-                    photoDto.size(), photoDto.contentType());
+        Photo photo = new Photo(photoDto.imageUrl(), user,
+                photoDto.uploadDate(), photoDto.filename(),
+                photoDto.size(), photoDto.contentType());
         photoRepository.save(photo);
 
         return ResponseEntity.ok("Photo metadata saved successfully");
     }
 
-    @PatchMapping("/update-profile")
+    @PatchMapping
     public ResponseEntity<String> updateProfile(@RequestBody ProfileDto profileDto, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
@@ -135,7 +136,7 @@ public class ProfileController {
 
         if (user.getHobbies().contains(hobbyName)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body("Hobby already exists.");
+                    .body("Hobby already exists.");
         }
 
         user.getHobbies().add(hobbyName);
@@ -168,12 +169,12 @@ public class ProfileController {
 
         return ResponseEntity.ok("Hobby deleted successfully");
     }
-        */
+     */
 
     @PutMapping("hobbies")
     public ResponseEntity<String> putMethodName(@RequestBody List<HobbyDto> hobbies, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
-            .orElse(null);
+                .orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -195,10 +196,10 @@ public class ProfileController {
         }
 
         List<HobbyDto> hobbies = user.getHobbies().stream()
-            .map(hobbyName -> new HobbyDto(hobbyName))
-            .collect(Collectors.toList());
+                .map(hobbyName -> new HobbyDto(hobbyName))
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(hobbies);
     }
-    
+
 }

@@ -68,20 +68,23 @@ public class PhotoController {
         return ResponseEntity.ok(photoDtos);
     }
 
-    @PostMapping("/get-upload-url")
-    public ResponseEntity<String> generateUploadUrl(@RequestBody PresignRequest presignRequest, Authentication authentication) {
+    @PostMapping("/upload-url")
+    public ResponseEntity<String> generateUploadUrl(@RequestBody PresignRequest presignRequest,
+            Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String bucketName = "hobbylist-photos";
-        String key = "photos/" + user.getId() + "/" + UUID.randomUUID() + "-" + presignRequest.filename(); // Define your key structure
+        String key = "photos/" + user.getId() + "/" + UUID.randomUUID() + "-" + presignRequest.filename(); // Define
+                                                                                                           // your key
+                                                                                                           // structure
         String uploadUrl = s3Service.generateUploadUrl(bucketName, key, presignRequest.contentType());
 
         return ResponseEntity.ok(uploadUrl);
     }
 
-    @PostMapping("/save-url")
+    @PostMapping
     public ResponseEntity<String> saveURL(@Valid @RequestBody PhotoDto photoDto, Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null) {
