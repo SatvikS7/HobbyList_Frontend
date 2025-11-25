@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { type MilestoneDto } from "../types";
+import { calculateCompletion } from "../utils/milestoneUtils";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MilestoneItemProps {
@@ -66,18 +67,31 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
             <div className="text-sm text-gray-500 mt-1">
               Due: {new Date(milestone.dueDate).toLocaleDateString()}
             </div>
+            {/* Progress Bar */}
+            <div className="w-full max-w-[200px] mt-2">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Progress</span>
+                <span>{Math.round(calculateCompletion(milestone))}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div
+                  className="bg-[#b99547] h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${calculateCompletion(milestone)}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
           <span
             className={`px-2 py-1 rounded text-xs font-medium ${
-              milestone.isCompleted
+              milestone.completed
                 ? "bg-green-100 text-green-800"
                 : "bg-[#f5e6c8] text-[#785c16]"
             }`}
           >
-            {milestone.isCompleted ? "Completed" : "Pending"}
+            {milestone.completed ? "Completed" : "Pending"}
           </span>
           <button
             onClick={(e) => {

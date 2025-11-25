@@ -2,7 +2,7 @@ export interface MilestoneDto {
   id: number;
   task: string;
   dueDate: string;
-  isCompleted: boolean;
+  completed: boolean;
   parentId: number | null;
   subMilestones: MilestoneDto[];
   taggedPhotoIds: number[];
@@ -12,7 +12,7 @@ export interface MilestoneDto {
 export interface CreateMilestoneRequest {
   task: string;
   dueDate: string;
-  isCompleted: boolean;
+  completed: boolean;
   parentId?: number | null;
   taggedPhotoIds?: number[];
 }

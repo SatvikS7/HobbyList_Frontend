@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export const photoService = {
     getUploadUrl: async (filename: string, contentType: string): Promise<string> => {
-        const response = await api.post<string>('/photos/get-upload-url', {
+        const response = await api.post<string>('/photos/upload-url', {
             filename,
             contentType,
         });
@@ -41,7 +41,7 @@ export const photoService = {
         taggedMilestoneIds?: number[];
         uploadDate: string;
     }): Promise<void> => {
-        await api.post('/photos/save-url', data);
+        await api.post('/photos', data);
     },
 
     getPhotos: async (): Promise<PhotoDto[]> => {

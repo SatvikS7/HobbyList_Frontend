@@ -45,7 +45,7 @@ function MilestoneSection() {
       await milestoneService.createMilestone({
         task: newTask,
         dueDate: isoString,
-        isCompleted: false,
+        completed: false,
         taggedPhotoIds: selectedPhotoIds,
       });
 
@@ -80,8 +80,8 @@ function MilestoneSection() {
     .filter((m) => m.parentId === null) // Only show top-level milestones
     .filter((m) => {
       if (filterStatus === "ALL") return true;
-      if (filterStatus === "COMPLETED") return m.isCompleted;
-      if (filterStatus === "PENDING") return !m.isCompleted;
+      if (filterStatus === "COMPLETED") return m.completed;
+      if (filterStatus === "PENDING") return !m.completed;
       return true;
     });
 

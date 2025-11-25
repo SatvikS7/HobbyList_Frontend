@@ -8,11 +8,19 @@ export const milestoneService = {
     },
 
     createMilestone: async (milestone: CreateMilestoneRequest): Promise<MilestoneDto> => {
-        const response = await api.post<MilestoneDto>('/milestones/create-milestone', milestone);
+        const response = await api.post<MilestoneDto>('/milestones', milestone);
         return response.data;
     },
 
     deleteMilestone: async (id: number): Promise<void> => {
-        await api.delete(`/milestones/delete-milestone/${id}`);
+        await api.delete(`/milestones/${id}`);
+    },
+
+    editMilestone: async (milestone: MilestoneDto): Promise<void> => {
+        await api.patch(`/milestones/${milestone.id}`, milestone);
+    },
+
+    completeMilestoneTree: async (id: number): Promise<void> => {
+        await api.post(`/milestones/${id}/complete-tree`);
     },
 };

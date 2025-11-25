@@ -9,7 +9,7 @@ export const profileService = {
     },
 
     updateProfile: async (updates: Partial<ProfileDto>): Promise<void> => {
-        await api.patch('/profile/update-profile', updates);
+        await api.patch('/profile', updates);
     },
 
     addHobby: async (hobby: string): Promise<void> => {
@@ -17,7 +17,7 @@ export const profileService = {
     },
 
     getUploadUrl: async (filename: string, contentType: string): Promise<string> => {
-        const response = await api.post<string>('/profile/get-upload-url', {
+        const response = await api.post<string>('/profile/upload-url', {
             filename,
             contentType,
         });
@@ -31,7 +31,7 @@ export const profileService = {
         size: number;
         contentType: string;
     }): Promise<void> => {
-        await api.post('/profile/save-url', data);
+        await api.post('/profile/photo', data);
     },
 
     uploadFileToS3: async (uploadUrl: string, file: File): Promise<void> => {
