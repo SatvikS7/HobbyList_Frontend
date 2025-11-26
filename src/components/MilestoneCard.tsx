@@ -5,7 +5,7 @@ import PhotoCard from "./PhotoCard";
 import { milestoneService } from "../services/milestoneService";
 import toast from "react-hot-toast";
 import { type MilestoneDto } from "../types";
-import { calculateCompletion } from "../utils/milestoneUtils";
+import { get } from "react-hook-form";
 
 interface MilestoneCardProps {
   milestone: MilestoneDto;
@@ -14,7 +14,7 @@ interface MilestoneCardProps {
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete }) => {
-  const { milestoneMap, photoMap, refreshMilestones, photos , completeParents} = usePhotoMilestone();
+  const { milestoneMap, photoMap, refreshMilestones, photos , completeMilestone} = usePhotoMilestone();
   const { profile } = useProfile();
   const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
 
@@ -79,7 +79,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
       const dateTimeString = `${editDate}T${editTime}:00`;
       const localDate = new Date(dateTimeString);
       const isoString = localDate.toISOString();
-      console.log(editCompleted)
+      
       const updatedMilestone: MilestoneDto = {
         ...milestone,
         task: editTask,
@@ -91,15 +91,13 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
 
       await milestoneService.editMilestone(updatedMilestone);
 
-      // If marking as completed, trigger cascade
+      // If marking as completed, trigger cascade via context
       if (editCompleted && !milestone.completed) {
-        console.log("triggering cascade")
-        await milestoneService.completeMilestoneTree(milestone.id);
-        milestoneMap.set(milestone.id, {...milestone, completed: true});
-        await completeParents(milestone.id);
+        await completeMilestone(milestone.id);
+      } else {
+        await refreshMilestones();
       }
 
-      await refreshMilestones();
       toast.success("Milestone updated!");
       onClose();
     } catch (error) {
@@ -150,33 +148,36 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
 
     return (
       <ul className="pl-4 border-l border-gray-300 space-y-2 mt-2">
-        {subs.map((sub) => (
-          <li key={sub.id}>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-800 font-medium">{sub.task}</span>
-              <span className="text-gray-500 text-sm">{sub.hobbyTag}</span>
-            </div>
-            <div className="text-gray-600 text-sm">
-              Due: {new Date(sub.dueDate).toLocaleDateString()} |{" "}
-              {sub.completed ? "Completed" : "Pending"}
-            </div>
-            {/* Sub-milestone Progress Bar */}
-             <div className="w-full max-w-[150px] mt-1">
-              <div className="w-full bg-gray-200 rounded-full h-1">
-                <div
-                  className="bg-[#b99547] h-1 rounded-full transition-all duration-300"
-                  style={{ width: `${calculateCompletion(sub)}%` }}
-                />
+        {subs.map((sub) => {
+          const subPercentage = (milestoneMap.get(sub.id)?.completionRate ?? 0) * 100;
+          return (
+            <li key={sub.id}>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-800 font-medium">{sub.task}</span>
+                <span className="text-gray-500 text-sm">{sub.hobbyTag}</span>
               </div>
-            </div>
-            {renderSubMilestones(sub.subMilestones)}
-          </li>
-        ))}
+              <div className="text-gray-600 text-sm">
+                Due: {new Date(sub.dueDate).toLocaleDateString()} |{" "}
+                {sub.completed ? "Completed" : "Pending"}
+              </div>
+              {/* Sub-milestone Progress Bar */}
+               <div className="w-full max-w-[150px] mt-1">
+                <div className="w-full bg-gray-200 rounded-full h-1">
+                  <div
+                    className="bg-[#b99547] h-1 rounded-full transition-all duration-300"
+                    style={{ width: `${subPercentage}%` }}
+                  />
+                </div>
+              </div>
+              {renderSubMilestones(sub.subMilestones)}
+            </li>
+          );
+        })}
       </ul>
     );
   };
-
   const selectedPhoto = selectedPhotoId ? photoMap.get(selectedPhotoId) : null;
+  const currentPercentage = (milestoneMap.get(milestone.id)?.completionRate ?? 0) * 100;
 
   return (
     <>
@@ -348,12 +349,12 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
               <div className="mb-4">
                 <div className="flex justify-between text-sm text-gray-600 mb-1">
                   <span>Progress</span>
-                  <span>{Math.round(calculateCompletion(milestone))}%</span>
+                  <span>{Math.round(currentPercentage)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className="bg-[#b99547] h-2.5 rounded-full transition-all duration-300"
-                    style={{ width: `${calculateCompletion(milestone)}%` }}
+                    style={{ width: `${currentPercentage}%` }}
                   />
                 </div>
               </div>
@@ -451,7 +452,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                                 src={photo.imageUrl}
                                 alt={photo.topic}
                                 className="w-12 h-12 object-cover rounded-md"
-                              />
+                                />
                               {selectedPhotoIds.includes(photo.id) && (
                                 <div className="absolute inset-0 bg-[#b99547]/20 rounded-md flex items-center justify-center">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white drop-shadow-md" viewBox="0 0 20 20" fill="currentColor">

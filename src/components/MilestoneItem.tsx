@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { type MilestoneDto } from "../types";
-import { calculateCompletion } from "../utils/milestoneUtils";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 
 interface MilestoneItemProps {
   milestone: MilestoneDto;
@@ -16,8 +16,11 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
   onClick, 
   depth = 0 
 }) => {
+  const { milestoneMap } = usePhotoMilestone();
   const [isExpanded, setIsExpanded] = useState(false);
   const hasChildren = milestone.subMilestones && milestone.subMilestones.length > 0;
+
+  const percentage = (milestoneMap.get(milestone.id)?.completionRate ?? 0) * 100;
 
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -71,12 +74,12 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
             <div className="w-full max-w-[200px] mt-2">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
                 <span>Progress</span>
-                <span>{Math.round(calculateCompletion(milestone))}%</span>
+                <span>{Math.round(percentage)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div
                   className="bg-[#b99547] h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${calculateCompletion(milestone)}%` }}
+                  style={{ width: `${percentage}%` }}
                 />
               </div>
             </div>

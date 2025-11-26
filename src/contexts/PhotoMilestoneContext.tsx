@@ -12,7 +12,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { type MilestoneDto, type PhotoDto } from "../types";
 import { photoService } from "../services/photoService";
 import { milestoneService } from "../services/milestoneService";
-import { calculateCompletion } from "../utils/milestoneUtils";
 
 type MilestoneCacheShape = {
     milestones: MilestoneDto[] | null;
@@ -49,7 +48,7 @@ type PhotoMilestoneContextValue = {
     getMilestones: () => Promise<MilestoneDto[] | null>;
     refreshMilestones: () => Promise<MilestoneDto[]>;
     invalidateMilestones: () => void;
-    completeParents: (milestoneId: number) => Promise<void>;
+    completeMilestone: (milestoneId: number) => Promise<void>;
 };
 
 // ---------- Helpers ----------
@@ -310,45 +309,12 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         setIsPhotoCacheFresh(false);
     };
 
-    const completeParents = async (milestoneId: number): Promise<void> => {
+    const completeMilestone = async (milestoneId: number): Promise<void> => {
         try {
-            // Get the current milestone to find its parent
-            const currentMilestone = milestoneMap.get(milestoneId);
-            if (!currentMilestone || !currentMilestone.parentId) {
-                console.log("No parent found");
-                return;
-            }
-
-            // Get the parent milestone
-            const parentMilestone = milestoneMap.get(currentMilestone.parentId);
-            if (!parentMilestone) {
-                console.log("Parent not found");
-                return;
-            }
-
-            // Calculate parent's completion percentage
-            const parentCompletion = calculateCompletion(parentMilestone);
-
-            // If parent is at 100% completion, mark it as complete
-            if (parentCompletion >= 100) {
-                const updatedParent: MilestoneDto = {
-                    ...parentMilestone,
-                    completed: true,
-                };
-
-                // Update the parent milestone
-                await milestoneService.editMilestone(updatedParent);
-
-                // Refresh milestones to get the latest state
-                await refreshMilestones();
-
-                // Recursively check the parent's parent
-                await completeParents(parentMilestone.id);
-            }
-            // If parent is not at 100% or parent is null, the loop breaks naturally by returning
-            console.log("Parent not at 100% completion");
+            await milestoneService.completeMilestone(milestoneId);
+            await refreshMilestones();
         } catch (error) {
-            console.error("Error in completeParents:", error);
+            console.error("Error in completeMilestone:", error);
             throw error;
         }
     };
@@ -368,7 +334,7 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         getMilestones,
         refreshMilestones,
         invalidateMilestones,
-        completeParents,
+        completeMilestone,
     };
 
     return (

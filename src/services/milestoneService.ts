@@ -20,6 +20,10 @@ export const milestoneService = {
         await api.patch(`/milestones/${milestone.id}`, milestone);
     },
 
+    completeMilestone: async (id: number): Promise<void> => {
+        await api.put(`/milestones/${id}/complete`);
+    },
+
     completeMilestoneTree: async (id: number): Promise<void> => {
         await api.post(`/milestones/${id}/complete-tree`);
     },

@@ -7,6 +7,7 @@ export interface MilestoneDto {
   subMilestones: MilestoneDto[];
   taggedPhotoIds: number[];
   hobbyTag: string | null;
+  completionRate: number;
 }
 
 export interface CreateMilestoneRequest {
