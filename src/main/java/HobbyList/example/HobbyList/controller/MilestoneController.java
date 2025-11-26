@@ -136,6 +136,8 @@ public class MilestoneController {
             hobbyService.addHobbyToUser(user, req.hobbyTag());
         }
 
+        milestoneService.updateParentsCompletion(saved.getParent());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(milestoneService.toDto(saved));
     }
 
@@ -271,8 +273,8 @@ public class MilestoneController {
         return ResponseEntity.ok(dtoRoots);
     }
 
-    @PostMapping("/{id}/complete-tree")
-    public ResponseEntity<?> completeTree(Authentication authentication, @PathVariable Long id) {
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<?> completeMilestone(Authentication authentication, @PathVariable Long id) {
         User user = userRepository.findByEmail(authentication.getName()).orElse(null);
         if (user == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -286,18 +288,7 @@ public class MilestoneController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Stack<Milestone> st = new Stack<>();
-        st.push(milestone);
-        while (!st.empty()) {
-            Milestone m = st.pop();
-            m.setCompleted(true);
-            milestoneRepository.save(m);
-            if (m.getSubMilestones() != null) {
-                for (Milestone child : m.getSubMilestones()) {
-                    st.push(child);
-                }
-            }
-        }
-        return ResponseEntity.ok("Milestone and all children completed");
+        milestoneService.markMilestoneComplete(id);
+        return ResponseEntity.ok("Milestone completed");
     }
 }

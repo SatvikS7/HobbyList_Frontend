@@ -29,6 +29,9 @@ public class Milestone {
     @Column(nullable = false)
     private boolean completed = false;
 
+    @Column(nullable = false)
+    private Double completionRate = 0.0;
+
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Milestone parent;
@@ -52,7 +55,8 @@ public class Milestone {
 
     private String hobbyTag;
 
-    public Milestone() {}
+    public Milestone() {
+    }
 
     public Milestone(String task, LocalDateTime dateCreated, int depth, User user) {
         this.task = task;

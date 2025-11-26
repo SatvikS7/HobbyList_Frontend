@@ -46,7 +46,7 @@ public class MilestoneMapper {
         if (dto.hobbyTag() != null) {
             milestone.setHobbyTag(dto.hobbyTag());
         }
-        /* 
+        /*
         if (dto.subMilestones() != null) {
             List<Milestone> subMilestones = dto.subMilestones().stream()
                 .map(subDto -> {
@@ -60,9 +60,9 @@ public class MilestoneMapper {
 
         if (dto.taggedPhotoIds() != null) {
             List<Long> photoIds = dto.taggedPhotoIds();
-            if (photoIds != null){
+            if (photoIds != null) {
                 milestone.setTaggedPhotos(photoRepository.findAllById(photoIds));
-        
+
             }
         }
     }
