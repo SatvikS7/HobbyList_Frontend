@@ -1,24 +1,37 @@
 import React from "react";
+import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 
-interface HobbyCardProps {
+interface PhotoCardProps {
   imageUrl: string;
   topic: string;
   description: string;
   uploadDate: string;
+  taggedMilestoneIds: number[];
   onClose: () => void;
 }
 
-const HobbyCard: React.FC<HobbyCardProps> = ({
+const PhotoCard: React.FC<PhotoCardProps> = ({
   imageUrl,
   topic,
   description,
   uploadDate,
+  taggedMilestoneIds,
   onClose,
 }) => {
+  const { milestoneMap } = usePhotoMilestone();
+  const taggedMilestones = taggedMilestoneIds
+    .map(id => milestoneMap.get(id))
+    .filter(Boolean);
+  console.log("Tagged Milestones:", taggedMilestoneIds);
+
   return (
     <div
       className="fixed inset-0 w-full h-full backdrop-blur-lg bg-black/20 flex justify-center items-center"
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div
         className="bg-white w-[90%] md:w-[70%] max-h-[90vh] rounded-lg overflow-hidden flex flex-col md:flex-row shadow-xl relative"
@@ -51,10 +64,22 @@ const HobbyCard: React.FC<HobbyCardProps> = ({
           <p className="text-gray-800 text-sm">
             {description}
           </p>
+
+          {/* Tagged Milestones */}
+          {taggedMilestones.length > 0 && (
+            <div className="mt-2">
+              <h3 className="font-semibold text-gray-700 mb-1">Tagged Milestones</h3>
+              <ul className="list-disc list-inside text-sm text-gray-800">
+                {taggedMilestones.map(m => (
+                  <li key={m!.id}>{m!.task}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default HobbyCard;
+export default PhotoCard;

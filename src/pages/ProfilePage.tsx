@@ -1,183 +1,134 @@
-import React, { use, useEffect, useState } from "react";
-import EditProfileModal from "../components/EditProfileModal.tsx";
-import HobbyCard from "../components/HobbyCard.tsx";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useProfile } from "../contexts/ProfileContext";
+import EditProfileModal from "../components/EditProfileModal";
+import MilestoneSection from "../components/MilestoneSection";
+import PhotoSection from "../components/PhotoSection";
 
-type PhotoDto = {
-  topic: string;
-  imageUrl: string;
-  description: string;
-  uploadDate: string;
-};
-
-type UserProfile = {
-  profileURL: string | null;
-  description: string;
-  username: string;
-  isPrivate: boolean;
-  hobbies: string[];
-};
-
-const API_BASE = import.meta.env.VITE_BACKEND_BASE;
-
-const ProfilePage: React.FC = () => {
-  const [photos, setPhotos] = useState<PhotoDto[]>([]);
-  const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [selectedTag, setSelectedTag] = useState<string>("All");
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
-
+function ProfilePage() {
+  const { profile, getProfile, updateProfileState } = useProfile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = sessionStorage.getItem("jwt");
-        const [photosRes, profileRes] = await Promise.all([
-          fetch(`${API_BASE}/photos`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/profile`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+    getProfile();
+  }, [getProfile]);
 
-        if (!photosRes.ok) throw new Error("Failed to fetch photos");
-        if (!profileRes.ok) throw new Error("Failed to fetch profile");
+  // Tab state managed by URL params
+  const activeTab = searchParams.get("tab") || "photos";
 
-        const photosData: PhotoDto[] = await photosRes.json();
-        const profileData: UserProfile = await profileRes.json();
-        console.log("Fetched hobbies:", profileData.hobbies);
-        setPhotos(photosData);
-        // print all photo descriptions
-        photosData.forEach(photo => console.log(photo.description));
-        setFilteredPhotos(photosData);
-        setTags(Array.from(new Set(photosData.map((photo) => photo.topic))));
-        setProfile(profileData);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab });
+  };
 
-    fetchData();
-  }, []);
-
-
-  useEffect(() => {
-    if (selectedTag === "All") {
-      setFilteredPhotos(photos);
-    } else {
-      setFilteredPhotos(photos.filter((photo) => photo.topic === selectedTag));
-    }
-  }, [selectedTag, photos]);
-
-  if (loading) {
-    return <div className="loading-screen">Loading profile...</div>;
+  if (!profile) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b99547]"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Profile Section */}
-      <div className="flex items-center gap-6 mt-16 mb-4">
-        <img
-          src={profile?.profileURL || "../src/assets/default-avatar.png"}
-          alt="Profile"
-          className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
-        />
-        <div className="flex flex-col gap-2">
-          <h1 className="text-lg text-gray-800 font-medium">
-            {profile?.username || "Username"}
-          </h1>
-          <p className="text-gray-700">{profile?.description || "No description set yet."}</p>
-          <button
-            className="px-4 py-2 rounded-md bg-[#b99547] text-white hover:bg-[#a07f36]"
-            onClick={() => setIsEditing(true)}
-          >
-            Edit Profile
-          </button>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Profile Header */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+          <div className="relative h-32 w-full bg-gradient-to-r from-[#fadd9e] to-[#b99547]"></div>
+          <div className="px-6 pb-6">
+            <div className="relative flex items-end -mt-12 mb-4">
+              <div className="relative">
+                <img
+                  src={profile.profileURL || "src/assets/default-avatar.png"}
+                  alt="Profile"
+                  className="h-24 w-24 rounded-full border-4 border-white object-cover bg-white"
+                />
+              </div>
+              <div className="ml-4 mb-1 flex-1">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {profile.displayName}
+                </h1>
+              </div>
+              <div>
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
+                >
+                  Edit Profile
+                </button>
+              </div>
+            </div>
 
-          {isEditing && profile && (
-            <EditProfileModal
-              profile={{
-                profileURL: profile.profileURL,
-                description: profile.description,
-                username: profile.username,
-                isPrivate: profile.isPrivate,
-                hobbies: profile.hobbies,
-              }}
-              onClose={() => setIsEditing(false)}
-              onSave={(updatedProfile) => {
-                setProfile({
-                  profileURL: updatedProfile.profileURL,
-                  description: updatedProfile.description,
-                  username: updatedProfile.username,
-                  isPrivate: updatedProfile.isPrivate,
-                  hobbies: updatedProfile.hobbies,
-                });
-                setIsEditing(false);
-              }}
-            />
-          )}
+            {/* Hobbies */}
+            <div className="mt-4">
+              <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
+                Hobbies & Interests
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.hobbies && profile.hobbies.length > 0 ? (
+                  profile.hobbies.map((hobby, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-[#f5e6c8] text-[#785c16]"
+                    >
+                      {hobby}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm">No hobbies added yet.</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden min-h-[500px]">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex">
+              <button
+                onClick={() => handleTabChange("photos")}
+                className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+                  activeTab === "photos"
+                    ? "border-[#b99547] text-[#b99547]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                My Photos
+              </button>
+              <button
+                onClick={() => handleTabChange("milestones")}
+                className={`w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+                  activeTab === "milestones"
+                    ? "border-[#b99547] text-[#b99547]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Milestones
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {activeTab === "photos" && <PhotoSection />}
+
+            {activeTab === "milestones" && <MilestoneSection />}
+          </div>
         </div>
       </div>
 
-      <hr className="my-6 border-t border-gray-300" />
-
-      {/* Photos Section */}
-      <h1 className="text-2xl font-bold mb-4 text-gray-900">My Photos</h1>
-      <div className="mb-6 flex items-center gap-2">
-        <label htmlFor="tagFilter" className="font-medium text-gray-800">
-          Filter by tag:
-        </label>
-        <select
-          id="tagFilter"
-          className="border border-gray-300 rounded px-2 py-1 text-black"
-          value={selectedTag}
-          onChange={(e) => setSelectedTag(e.target.value)}
-        >
-          <option value="All">All</option>
-          {tags.map((tag) => (
-            <option key={tag} value={tag}>{tag}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {filteredPhotos.map((photo, index) => (
-          <div 
-            key={index}
-            className="rounded-xl shadow-md overflow-hidden border border-gray-200"
-            onClick={() => setSelectedPhoto(photo)}>
-            <img
-              src={photo.imageUrl}
-              alt={photo.topic}
-              className="w-full h-48 object-cover"
-            />
-            {/*
-            <div className="p-2 text-sm text-gray-800">
-              <p className="font-medium">{photo.topic}</p>
-              <p className="text-gray-500">{new Date(photo.uploadDate).toLocaleDateString()}</p>
-              <p className="text-black">{photo.description}</p>
-            </div>*/}
-
-            {selectedPhoto && (
-              <HobbyCard
-                imageUrl={selectedPhoto.imageUrl}
-                topic={selectedPhoto.topic}
-                description={selectedPhoto.description}
-                uploadDate={selectedPhoto.uploadDate}
-                onClose={() => setSelectedPhoto(null)}
-              />
-            )}
-          </div>
-        ))}
-      </div>
+      {isEditModalOpen && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={(updatedProfile) => {
+            updateProfileState(updatedProfile);
+          }}
+        />
+      )}
     </div>
-
   );
-};
+}
 
 export default ProfilePage;

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navigate, useNavigate } from 'react-router-dom';
+import { profileService } from "../services/profileService";
 
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -26,15 +27,7 @@ const Onboarding: React.FC = () => {
         if (!username.trim()) return alert("Please enter a username.");
 
         try {
-            const res = await fetch(`${API_BASE}/profile/update-profile`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ username: username.trim() }),
-            });
-            if (!res.ok) throw new Error("Failed to update username");
+            await profileService.updateProfile({ displayName: username.trim() });
             setStep("hobbies");
         } catch (err) {
             console.error("Error updating username:", err);
@@ -52,16 +45,7 @@ const Onboarding: React.FC = () => {
 
     const handleHobbySubmit = async () => {
         try {
-            const res = await fetch(`${API_BASE}/profile/update-profile`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ hobbies: selectedHobbies }),
-            });
-            if (!res.ok) throw new Error("Failed to update hobbies");
-
+            await profileService.updateProfile({ hobbies: selectedHobbies });
             alert("Onboarding complete!");
             navigate('/home-page');
         } catch (err) {
