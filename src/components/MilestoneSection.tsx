@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { type MilestoneDto } from "../types";
 
 function MilestoneSection() {
-  const { milestones, refreshMilestones, photos } = usePhotoMilestone();
+  const { milestones, refreshMilestones, photos, invalidatePhotos} = usePhotoMilestone();
   
   const [newTask, setNewTask] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
@@ -41,6 +41,10 @@ function MilestoneSection() {
       const dateTimeString = `${newDueDate}T${newDueTime}:00`;
       const localDate = new Date(dateTimeString);
       const isoString = localDate.toISOString();
+
+      if (selectedPhotoIds.length === 0) {
+        invalidatePhotos();
+      }
 
       await milestoneService.createMilestone({
         task: newTask,
@@ -106,6 +110,7 @@ function MilestoneSection() {
               type="date"
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#b99547] focus:border-[#b99547] text-gray-800"
               value={newDueDate}
+              min={new Date().toISOString().split("T")[0]}
               onChange={(e) => setNewDueDate(e.target.value)}
             />
           </div>

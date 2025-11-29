@@ -49,6 +49,7 @@ type PhotoMilestoneContextValue = {
     refreshMilestones: () => Promise<MilestoneDto[]>;
     invalidateMilestones: () => void;
     completeMilestone: (milestoneId: number) => Promise<void>;
+    incompleteMilestone: (milestoneId: number) => Promise<void>;
 };
 
 // ---------- Helpers ----------
@@ -319,6 +320,16 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         }
     };
 
+    const incompleteMilestone = async (milestoneId: number): Promise<void> => {
+        try {
+            await milestoneService.incompleteMilestone(milestoneId);
+            await refreshMilestones();
+        } catch (error) {
+            console.error("Error in incompleteMilestone:", error);
+            throw error;
+        }
+    };
+
     const value: PhotoMilestoneContextValue = {
         milestones,
         photos,
@@ -335,6 +346,7 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         refreshMilestones,
         invalidateMilestones,
         completeMilestone,
+        incompleteMilestone,
     };
 
     return (

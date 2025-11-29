@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { type MilestoneDto } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
+import toast from "react-hot-toast";
 
 interface MilestoneItemProps {
   milestone: MilestoneDto;
@@ -16,8 +17,9 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
   onClick, 
   depth = 0 
 }) => {
-  const { milestoneMap } = usePhotoMilestone();
+  const { milestoneMap, completeMilestone, incompleteMilestone, refreshMilestones } = usePhotoMilestone();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
   const hasChildren = milestone.subMilestones && milestone.subMilestones.length > 0;
 
   const percentage = (milestoneMap.get(milestone.id)?.completionRate ?? 0) * 100;
@@ -25,6 +27,29 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
+  };
+
+  const handleToggleCompletion = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isToggling) return;
+
+    try {
+      setIsToggling(true);
+      if (milestone.completed) {
+        // Uncomplete
+        await incompleteMilestone(milestone.id);
+        toast.success("Milestone marked as incomplete");
+      } else {
+        // Complete
+        await completeMilestone(milestone.id);
+        toast.success("Milestone completed!");
+      }
+    } catch (error) {
+      console.error("Error toggling completion:", error);
+      toast.error("Failed to update milestone status");
+    } finally {
+      setIsToggling(false);
+    }
   };
 
   return (
@@ -96,6 +121,26 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
           >
             {milestone.completed ? "Completed" : "Pending"}
           </span>
+          <button
+            onClick={handleToggleCompletion}
+            disabled={isToggling}
+            className={`p-1 rounded transition-colors ${
+              milestone.completed
+                ? "text-green-600 hover:bg-green-100"
+                : "text-gray-400 hover:text-[#b99547] hover:bg-[#f5e6c8]"
+            }`}
+            title={milestone.completed ? "Mark as Incomplete" : "Mark as Complete"}
+          >
+            {milestone.completed ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+          </button>
           <button
             onClick={(e) => {
               e.stopPropagation();

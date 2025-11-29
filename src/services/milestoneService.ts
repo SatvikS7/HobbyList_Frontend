@@ -24,7 +24,7 @@ export const milestoneService = {
         await api.put(`/milestones/${id}/complete`);
     },
 
-    completeMilestoneTree: async (id: number): Promise<void> => {
-        await api.post(`/milestones/${id}/complete-tree`);
+    incompleteMilestone: async (id: number): Promise<void> => {
+        await api.put(`/milestones/${id}/incomplete`);
     },
 };

@@ -5,7 +5,6 @@ import PhotoCard from "./PhotoCard";
 import { milestoneService } from "../services/milestoneService";
 import toast from "react-hot-toast";
 import { type MilestoneDto } from "../types";
-import { get } from "react-hook-form";
 
 interface MilestoneCardProps {
   milestone: MilestoneDto;
@@ -14,7 +13,7 @@ interface MilestoneCardProps {
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete }) => {
-  const { milestoneMap, photoMap, refreshMilestones, photos , completeMilestone} = usePhotoMilestone();
+  const { milestoneMap, photoMap, refreshMilestones, photos, invalidatePhotos } = usePhotoMilestone();
   const { profile } = useProfile();
   const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
 
@@ -23,7 +22,6 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
   const [editTask, setEditTask] = useState(milestone.task);
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
-  const [editCompleted, setEditCompleted] = useState(milestone.completed);
   const [editHobbyTag, setEditHobbyTag] = useState(milestone.hobbyTag || "");
   const [editTaggedPhotoIds, setEditTaggedPhotoIds] = useState<number[]>(milestone.taggedPhotoIds);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +40,6 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
       setEditTask(milestone.task);
       setEditDate(dateObj.toISOString().split("T")[0]);
       setEditTime(dateObj.toTimeString().slice(0, 5));
-      setEditCompleted(milestone.completed);
       setEditHobbyTag(milestone.hobbyTag || "");
       setEditTaggedPhotoIds(milestone.taggedPhotoIds);
     }
@@ -84,19 +81,14 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
         ...milestone,
         task: editTask,
         dueDate: isoString,
-        completed: editCompleted,
+        completed: milestone.completed, // Keep original status
         hobbyTag: editHobbyTag.trim() || null,
         taggedPhotoIds: editTaggedPhotoIds,
       };
-
+      invalidatePhotos();
       await milestoneService.editMilestone(updatedMilestone);
 
-      // If marking as completed, trigger cascade via context
-      if (editCompleted && !milestone.completed) {
-        await completeMilestone(milestone.id);
-      } else {
-        await refreshMilestones();
-      }
+      await refreshMilestones();
 
       toast.success("Milestone updated!");
       onClose();
@@ -119,6 +111,10 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
       const dateTimeString = `${subtaskDate}T${subtaskTime}:00`;
       const localDate = new Date(dateTimeString);
       const isoString = localDate.toISOString();
+
+      if (selectedPhotoIds.length != 0) {
+        invalidatePhotos();
+      }
 
       await milestoneService.createMilestone({
         task: subtaskTask,
@@ -245,6 +241,12 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                     type="date"
                     className="w-full p-2 border border-gray-300 rounded-md text-black"
                     value={editDate}
+                    min={new Date().toISOString().split("T")[0]}
+                    max={
+                      milestone.parentId 
+                        ? new Date(milestoneMap.get(milestone.parentId)?.dueDate || "").toISOString().split("T")[0]
+                        : undefined
+                    }
                     onChange={(e) => setEditDate(e.target.value)}
                   />
                 </div>
@@ -276,18 +278,6 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                 </datalist>
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="edit-completed"
-                  checked={editCompleted}
-                  onChange={(e) => setEditCompleted(e.target.checked)}
-                  className="h-4 w-4 text-[#b99547] focus:ring-[#b99547] border-gray-300 rounded"
-                />
-                <label htmlFor="edit-completed" className="text-sm font-medium text-gray-700">
-                  Mark as Completed
-                </label>
-              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tagged Photos</label>
@@ -411,6 +401,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                             type="date"
                             className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900"
                             value={subtaskDate}
+                            min={new Date().toISOString().split("T")[0]}
+                            max={new Date(milestone.dueDate).toISOString().split("T")[0]}
                             onChange={(e) => setSubtaskDate(e.target.value)}
                           />
                         </div>
