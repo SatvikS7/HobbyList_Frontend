@@ -17,13 +17,13 @@ spring:
     url: jdbc:postgresql://localhost:5432/users
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: ${DB_DRIVER_CLASS}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: ${DB_DDL_AUTO}
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: ${DB_DIALECT}
         format_sql: true
     show-sql: false
   mail:

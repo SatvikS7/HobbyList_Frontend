@@ -2,20 +2,36 @@ package HobbyList.example.HobbyList.mapper;
 
 import HobbyList.example.HobbyList.dto.ProfileDto;
 import HobbyList.example.HobbyList.model.User;
-import org.mapstruct.*;
+
 import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface UserMapper {
+@Component
+public class UserMapper {
 
-    // Apply updates from a DTO to an existing User entity
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateUserFromDto(ProfileDto dto, @MappingTarget User user);
+    
+    public void updateUserFromDto(ProfileDto dto, User user) {
+        if (dto == null || user == null) {
+            return;
+        }
 
-    @AfterMapping
-    default void handleBooleans(ProfileDto dto, @MappingTarget User user) {
         if (dto.isPrivate() != null) {
             user.setPrivate(dto.isPrivate());
+        }
+
+        if (dto.description() != null) {
+            user.setDescription(dto.description());
+        }
+
+        if (dto.displayName() != null) {
+            user.setDisplayName(dto.displayName());
+        }   
+
+        if (dto.profileURL() != null) {
+            user.setProfileURL(dto.profileURL());
+        }
+
+        if (dto.hobbies() != null) {
+            user.setHobbies(dto.hobbies());
         }
     }
 }

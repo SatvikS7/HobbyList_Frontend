@@ -26,10 +26,12 @@ public class User implements UserDetails{
     private String lastname;
 
     @Column(nullable = false)
-    private String username = "dummy";
+    private String displayName = "dummy";
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    private String username;
 
     @Column(nullable = false)
     private String password;
@@ -57,11 +59,11 @@ public class User implements UserDetails{
 
     public User() {}
 
-    public User(long id, String firstname, String lastname, String username, String email, String password, String role) {
+    public User(long id, String firstname, String lastname, String displayName, String email, String password, String role) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
-        this.username = username;
+        this.displayName = displayName;
         this.email = email;
         this.password = password;
         this.role = role;
@@ -87,11 +89,11 @@ public class User implements UserDetails{
     }
 
     public String getDisplayName() {
-        return username;
+        return displayName;
     }
 
-    public void setDisplayName(String username) {
-        this.username = username;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public void setOld() {
