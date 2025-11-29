@@ -31,7 +31,8 @@ public class MilestoneService {
                 m.getTaggedPhotos() != null
                         ? m.getTaggedPhotos().stream().map(Photo::getId).collect(Collectors.toList())
                         : null,
-                m.getHobbyTag());
+                m.getHobbyTag(),
+                m.getManualState());
     }
 
     public void markMilestoneComplete(Long id) {
@@ -39,17 +40,42 @@ public class MilestoneService {
         if (m == null)
             return;
 
-        markChildrenComplete(m);
-        updateParentsCompletion(m.getParent());
-    }
-
-    private void markChildrenComplete(Milestone m) {
+        m.setManualState("complete");
         m.setCompleted(true);
         m.setCompletionRate(1.0);
         milestoneRepository.save(m);
 
+        markChildrenComplete(m);
+        updateParentsCompletion(m.getParent());
+    }
+
+    public void markMilestoneIncomplete(Long id) {
+        Milestone m = milestoneRepository.findById(id).orElse(null);
+        if (m == null)
+            return;
+
+        m.setManualState("incomplete");
+        m.setCompleted(false);
+
+        List<Milestone> children = m.getSubMilestones();
+        if (children == null || children.isEmpty()) {
+            m.setCompletionRate(0.0);
+        } else {
+            double sum = children.stream().mapToDouble(Milestone::getCompletionRate).sum();
+            m.setCompletionRate(sum / children.size());
+        }
+
+        milestoneRepository.save(m);
+        updateParentsCompletion(m.getParent());
+    }
+
+    private void markChildrenComplete(Milestone m) {
         if (m.getSubMilestones() != null) {
             for (Milestone child : m.getSubMilestones()) {
+                child.setManualState("none");
+                child.setCompleted(true);
+                child.setCompletionRate(1.0);
+                milestoneRepository.save(child);
                 markChildrenComplete(child);
             }
         }
@@ -60,14 +86,31 @@ public class MilestoneService {
             return;
 
         List<Milestone> children = parent.getSubMilestones();
-        if (children == null || children.isEmpty()) {
-            parent.setCompletionRate(parent.isCompleted() ? 1.0 : 0.0);
-        } else {
+        double avgRate = 0.0;
+        if (children != null && !children.isEmpty()) {
             double sum = children.stream().mapToDouble(Milestone::getCompletionRate).sum();
-            parent.setCompletionRate(sum / children.size());
+            avgRate = sum / children.size();
+        } else {
+            avgRate = parent.isCompleted() ? 1.0 : 0.0;
         }
 
-        parent.setCompleted(parent.getCompletionRate() >= 1.0);
+        String state = parent.getManualState();
+        if ("incomplete".equals(state)) {
+            parent.setCompleted(false);
+            parent.setCompletionRate(avgRate);
+        } else if ("complete".equals(state)) {
+            if (children != null && !children.isEmpty() && avgRate < 1.0) {
+                parent.setManualState("none");
+                parent.setCompleted(false);
+                parent.setCompletionRate(avgRate);
+            } else {
+                parent.setCompleted(true);
+                parent.setCompletionRate(1.0);
+            }
+        } else {
+            parent.setCompletionRate(avgRate);
+            parent.setCompleted(avgRate >= 1.0);
+        }
 
         milestoneRepository.save(parent);
         updateParentsCompletion(parent.getParent());

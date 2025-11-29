@@ -25,7 +25,8 @@ public class MilestoneMapper {
             return;
         }
 
-        if (dto.completed() != null) {
+        if (dto.completed() != null && dto.completed() != milestone.isCompleted()) {
+
             milestone.setCompleted(dto.completed());
         }
 

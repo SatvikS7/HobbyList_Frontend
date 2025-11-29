@@ -189,6 +189,8 @@ public class MilestoneController {
         milestoneMapper.updateMilestoneFromDto(req, m);
         milestoneRepository.save(m);
 
+        milestoneService.updateParentsCompletion(m.getParent());
+
         return ResponseEntity.ok(milestoneService.toDto(m));
     }
 
@@ -290,5 +292,24 @@ public class MilestoneController {
 
         milestoneService.markMilestoneComplete(id);
         return ResponseEntity.ok("Milestone completed");
+    }
+
+    @PutMapping("/{id}/incomplete")
+    public ResponseEntity<?> incompleteMilestone(Authentication authentication, @PathVariable Long id) {
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (user == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Optional<Milestone> mOpt = milestoneRepository.findById(id);
+        if (mOpt.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Milestone not found");
+
+        Milestone milestone = mOpt.get();
+        if (milestone.getUser() == null || milestone.getUser().getId() != user.getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        milestoneService.markMilestoneIncomplete(id);
+        return ResponseEntity.ok("Milestone marked incomplete");
     }
 }
