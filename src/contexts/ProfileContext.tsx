@@ -9,17 +9,8 @@ import React, {
 } from "react";
 
 import { useAuth } from "../contexts/AuthContext";
-
-const API_BASE = import.meta.env.VITE_BACKEND_BASE;
-
-// ---------- Types ----------
-export type ProfileDto = {
-  profileURL: string | null;
-  description: string;
-  displayName: string;
-  isPrivate: boolean;
-  hobbies: string[]; 
-};
+import { type ProfileDto } from "../types";
+import { profileService } from "../services/profileService";
 
 type ProfileCacheShape = {
   profile: ProfileDto | null;
@@ -49,6 +40,8 @@ type ProfileContextValue = {
    * Exposes errors to caller. Adjust endpoint path if your backend differs.
    */
   addHobby: (hobby: string) => Promise<void>;
+  /** Manually update the profile state (e.g. after an edit) */
+  updateProfileState: (newProfile: ProfileDto) => void;
 };
 
 // ---------- Helpers ----------
@@ -134,30 +127,6 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   }, [LS_KEY, profile, lastProfileFetchTs, isHobbyCacheFresh]);
 
-  // ---------- internal fetcher ----------
-  const fetchProfileFromServer = async (): Promise<ProfileDto> => {
-    const token = sessionStorage.getItem("jwt");
-    if (!token) throw new Error("Unauthenticated: missing jwt");
-
-    const res = await fetch(`${API_BASE}/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => null);
-      throw new Error(text || `Failed to fetch profile: ${res.status}`);
-    }
-
-    const data = (await res.json()) as ProfileDto;
-
-    // Basic sanitation: ensure hobbies array exists
-    if (!Array.isArray(data.hobbies)) {
-      data.hobbies = [];
-    }
-
-    return data;
-  };
-
   // ---------- exposed functions ----------
   const getProfile = async (): Promise<ProfileDto | null> => {
     setError(null);
@@ -180,7 +149,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     const p = (async () => {
       setLoading(true);
       try {
-        const fresh = await fetchProfileFromServer();
+        const fresh = await profileService.getProfile();
         setProfile(fresh);
         setLastProfileFetchTs(Date.now());
         // When we fetch from server, server data represents the ground truth so set hobbies fresh.
@@ -211,7 +180,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     setLoading(true);
     try {
-      const fresh = await fetchProfileFromServer();
+      const fresh = await profileService.getProfile();
       setProfile(fresh);
       setLastProfileFetchTs(Date.now());
       setIsHobbyCacheFresh(true);
@@ -230,11 +199,6 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     // persist change will occur due to effect
   };
 
-  /**
-   * addHobby: performs a server-side POST to add a single hobby, then marks the hobby cache stale.
-   * - If your backend path differs, change the endpoint below.
-   * - Errors bubble up to caller (per your preference).
-   */
   const addHobby = async (hobby: string): Promise<void> => {
     setError(null);
     const trimmed = hobby?.trim();
@@ -242,30 +206,9 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
       throw new Error("Invalid hobby value");
     }
 
-    const token = sessionStorage.getItem("jwt");
-    if (!token) {
-      throw new Error("Unauthenticated: missing jwt");
-    }
-
-    // Default POST path. Adjust if your backend uses a different route.
-    const endpoint = `${API_BASE}/profile/hobbies`;
-
     setLoading(true);
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ hobby: trimmed }), // matches HobbyDto { hobby: string }
-      });
-
-      if (!res.ok) {
-        const txt = await res.text().catch(() => null);
-        throw new Error(txt || `Failed to add hobby: ${res.status}`);
-      }
-
+      await profileService.addHobby(trimmed);
       // Server accepted the addition. We mark hobby cache stale per your chosen strategy (B).
       setIsHobbyCacheFresh(false);
     } catch (err: any) {
@@ -277,6 +220,14 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  const updateProfileState = (newProfile: ProfileDto) => {
+    setProfile(newProfile);
+    // Optionally update timestamp or leave as is. 
+    // Since we have fresh data, we can update timestamp to now to prevent immediate refetch.
+    setLastProfileFetchTs(Date.now());
+    setIsHobbyCacheFresh(true); 
+  };
+
   const value: ProfileContextValue = {
     profile,
     loading,
@@ -285,6 +236,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     refreshProfile,
     invalidateHobbies,
     addHobby,
+    updateProfileState,
   };
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;

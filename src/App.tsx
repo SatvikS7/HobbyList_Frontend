@@ -1,4 +1,5 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import './App.css'
 import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage'
@@ -15,6 +16,7 @@ import Onboarding from './pages/OnboardingPage';
 function App() {
   return (
     <div className='body'>
+      <Toaster position="top-center" reverseOrder={false} />
       <Header />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -25,7 +27,6 @@ function App() {
         <Route path="/reset-password" element={<PasswordResetForm />} />
         <Route path="/home-page" element={<HomePage />} />
         <Route path="/upload-photo" element={<UploadPhoto />} />
-        <Route path="/reset-password" element={<PasswordResetForm />} />
         <Route path="/profile-page" element={<ProfilePage />} />
         <Route path="/onboarding-page" element={<Onboarding />} />
       </Routes>

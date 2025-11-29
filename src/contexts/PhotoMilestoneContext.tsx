@@ -9,37 +9,14 @@ import React, {
 } from "react";
 
 import { useAuth } from "../contexts/AuthContext";
-
-const API_BASE = import.meta.env.VITE_BACKEND_BASE;
-
-// ---------- Types ----------
-
-// Milestone 
-export type MilestoneDto = {
-    id: number;
-    task: string;
-    dueDate: string;
-    isCompleted: boolean;
-    parentId: number | null;
-    subMilestones: MilestoneDto[];
-    taggedPhotoIds: number[];
-    hobbyTag: string | null;
-}
+import { type MilestoneDto, type PhotoDto } from "../types";
+import { photoService } from "../services/photoService";
+import { milestoneService } from "../services/milestoneService";
 
 type MilestoneCacheShape = {
     milestones: MilestoneDto[] | null;
     isFresh: boolean; // true => cache is fresh
 }
-
-// Photo
-export type PhotoDto = {
-  id: number;
-  topic: string;
-  imageUrl: string;
-  description: string;
-  uploadDate: string; 
-  taggedMilestoneIds: number[]
-};
 
 type PhotoCacheShape = {
     photos: PhotoDto[] | null;
@@ -71,6 +48,8 @@ type PhotoMilestoneContextValue = {
     getMilestones: () => Promise<MilestoneDto[] | null>;
     refreshMilestones: () => Promise<MilestoneDto[]>;
     invalidateMilestones: () => void;
+    completeMilestone: (milestoneId: number) => Promise<void>;
+    incompleteMilestone: (milestoneId: number) => Promise<void>;
 };
 
 // ---------- Helpers ----------
@@ -136,10 +115,8 @@ function writeMilestoneCacheToLocalStorage(milestone_key: string, cache: Milesto
 
 const PhotoMilestoneContext = createContext<PhotoMilestoneContextValue | undefined>(undefined);
 
-// ---------- Provider ----------
 export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // ---------- Local storage keys & constants ----------
-    const { userId, isLoggedIn } = useAuth();
+    const { userId } = useAuth();
 
     const PHOTO_URL_TTL_MS = 5 * 60 * 1000; 
 
@@ -169,7 +146,6 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
     const inFlightMilestoneFetch = useRef<Promise<MilestoneDto[] | null> | null>(null);
 
     useEffect(() => {
-        // reset local state when user changes
         const newPhotoCache = readPhotoCacheFromLocalStorage(PHOTO_LS_KEY);
         const newMilestoneCache = readMilestoneCacheFromLocalStorage(MILESTONE_LS_KEY);
 
@@ -180,7 +156,6 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         setMilestones(newMilestoneCache.milestones);
         setIsMilestoneCacheFresh(newMilestoneCache.isFresh);
 
-        // clear in-flight operations
         inFlightPhotoFetch.current = null;
         inFlightMilestoneFetch.current = null;
 
@@ -191,7 +166,6 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         function addMilestone(m: MilestoneDto) {
             map.set(m.id, m);
 
-            // Recursively add children
             if (m.subMilestones && m.subMilestones.length > 0) {
                 m.subMilestones.forEach(child => addMilestone(child));
             }
@@ -220,177 +194,166 @@ export const PhotoMilestoneProvider: React.FC<{ children: ReactNode }> = ({ chil
         });
     }, [PHOTO_LS_KEY, MILESTONE_LS_KEY, photos, lastFetchTs, isPhotoCacheFresh, milestones, isMilestoneCacheFresh]);
 
-    const fetchMilestonesFromServer = async (): Promise<MilestoneDto[]> => {
-            const token = sessionStorage.getItem("jwt");
-            if (!token) throw new Error("Unauthenticated: missing jwt");
-    
-            const res = await fetch(`${API_BASE}/milestones`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-    
-            if (!res.ok) {
-                throw new Error(`Failed to fetch milestones: ${res.status} ${res.statusText}`);
-            }
-    
-            const data: MilestoneDto[] = await res.json();
-            return data;
-        };
-    
-        const getMilestones = async (): Promise<MilestoneDto[] | null> => {
-            if (milestones && isMilestoneCacheFresh) {
-                return milestones;
-            }
+    const getMilestones = async (): Promise<MilestoneDto[] | null> => {
+        if (milestones && isMilestoneCacheFresh) {
+            return milestones;
+        }
 
-            if (inFlightMilestoneFetch.current) {
-                return inFlightMilestoneFetch.current;
-            }
-    
-            const p = (async () => {
-                setLoadingMilestones(true);
-                try {
-                    const fetchedMilestones = await fetchMilestonesFromServer();
-                    setMilestones(fetchedMilestones);
-                    setIsMilestoneCacheFresh(true);
-                    return fetchedMilestones;
-                } catch (e: any) {
-                    setErrorMilestones(e.message || "Unknown error while fetching milestones");
-                    throw e;
-                } finally {
-                    setLoadingMilestones(false);
-                    inFlightMilestoneFetch.current = null;
-                }
-            })();
-    
-            inFlightMilestoneFetch.current = p;
-            return p;
-        };
-    
-        const refreshMilestones = async (): Promise<MilestoneDto[]> => {
-            setErrorMilestones(null);
-            
-            if (inFlightMilestoneFetch.current) {
-                const res = await inFlightMilestoneFetch.current;
-                if (res) return res;
-            }
-            inFlightMilestoneFetch.current = null;
+        if (inFlightMilestoneFetch.current) {
+            return inFlightMilestoneFetch.current;
+        }
 
+        const p = (async () => {
             setLoadingMilestones(true);
             try {
-                const freshMilestones = await fetchMilestonesFromServer();
-                setMilestones(freshMilestones);
+                const fetchedMilestones = await milestoneService.getMilestones();
+                setMilestones(fetchedMilestones);
                 setIsMilestoneCacheFresh(true);
-                return freshMilestones;
+                return fetchedMilestones;
             } catch (e: any) {
-                setErrorMilestones(e.message || "Unknown error while refreshing milestones");
+                setErrorMilestones(e.message || "Unknown error while fetching milestones");
                 throw e;
             } finally {
                 setLoadingMilestones(false);
+                inFlightMilestoneFetch.current = null;
             }
-        };
-    
-        const invalidateMilestones = () => {
-            setIsMilestoneCacheFresh(false);
-        };
+        })();
 
-        const fetchPhotosFromServer = async (): Promise<PhotoDto[]> => {
-            const token = sessionStorage.getItem("jwt");
-            if (!token) throw new Error("Unauthenticated: missing jwt");   
-    
-            const res = await fetch(`${API_BASE}/photos`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-    
-            if (!res.ok) {
-                const errorMsg = `Failed to fetch photos: ${res.status} ${res.statusText}`;
-                throw new Error(errorMsg);
-            }
-    
-            const data: PhotoDto[] = await res.json();
-            return data;
-        };
-    
-        const getPhotos = async (): Promise<PhotoDto[] | null> => {
-            setErrorPhotos(null);
-    
-            if (photos && isPhotoCacheFresh && !isPhotoUrlExpired(lastFetchTs, PHOTO_URL_TTL_MS)) {
-                return photos;
-            }
-    
-            if (inFlightPhotoFetch.current) {
-                return inFlightPhotoFetch.current;
-            }
-    
-            const p = (async () => {
-                setLoadingPhotos(true);
-                try {
-                    const fetchedPhotos = await fetchPhotosFromServer();
-                    setPhotos(fetchedPhotos);
-                    setLastFetchTs(Date.now());
-                    setIsPhotoCacheFresh(true);
-                    return fetchedPhotos;
-                } catch (err: any) {
-                    setErrorPhotos(err.message || "Unknown error");
-                    throw err;
-                } finally {
-                    setLoadingPhotos(false);
-                    inFlightPhotoFetch.current = null;
-                }
-            })();
-    
-            inFlightPhotoFetch.current = p;
-            return p;
-        };
-    
-        const refreshPhotos = async (): Promise<PhotoDto[]> => {
-            setErrorPhotos(null);
+        inFlightMilestoneFetch.current = p;
+        return p;
+    };
 
-            if (inFlightPhotoFetch.current) {
-                const res = await inFlightPhotoFetch.current;
-                if (res) return res;
-            }
-            inFlightPhotoFetch.current = null;
-    
+    const refreshMilestones = async (): Promise<MilestoneDto[]> => {
+        setErrorMilestones(null);
+        
+        if (inFlightMilestoneFetch.current) {
+            const res = await inFlightMilestoneFetch.current;
+            if (res) return res;
+        }
+        inFlightMilestoneFetch.current = null;
+
+        setLoadingMilestones(true);
+        try {
+            const freshMilestones = await milestoneService.getMilestones();
+            setMilestones(freshMilestones);
+            setIsMilestoneCacheFresh(true);
+            return freshMilestones;
+        } catch (e: any) {
+            setErrorMilestones(e.message || "Unknown error while refreshing milestones");
+            throw e;
+        } finally {
+            setLoadingMilestones(false);
+        }
+    };
+
+    const invalidateMilestones = () => {
+        setIsMilestoneCacheFresh(false);
+    };
+
+    const getPhotos = async (): Promise<PhotoDto[] | null> => {
+        setErrorPhotos(null);
+
+        if (photos && isPhotoCacheFresh && !isPhotoUrlExpired(lastFetchTs, PHOTO_URL_TTL_MS)) {
+            return photos;
+        }
+
+        if (inFlightPhotoFetch.current) {
+            return inFlightPhotoFetch.current;
+        }
+
+        const p = (async () => {
             setLoadingPhotos(true);
             try {
-                const freshPhotos = await fetchPhotosFromServer();
-                setPhotos(freshPhotos);
+                const fetchedPhotos = await photoService.getPhotos();
+                setPhotos(fetchedPhotos);
                 setLastFetchTs(Date.now());
                 setIsPhotoCacheFresh(true);
-                return freshPhotos;
+                return fetchedPhotos;
             } catch (err: any) {
                 setErrorPhotos(err.message || "Unknown error");
                 throw err;
             } finally {
                 setLoadingPhotos(false);
+                inFlightPhotoFetch.current = null;
             }
-        };
-    
-        const invalidatePhotos = () => {
-            setIsPhotoCacheFresh(false);
-        };
+        })();
 
-        const value: PhotoMilestoneContextValue = {
-            milestones,
-            photos,
-            loadingMilestones,
-            loadingPhotos,
-            errorMilestones,
-            errorPhotos,
-            photoMap,
-            milestoneMap,
-            getPhotos,
-            refreshPhotos,
-            invalidatePhotos,
-            getMilestones,
-            refreshMilestones,
-            invalidateMilestones,
-        };
+        inFlightPhotoFetch.current = p;
+        return p;
+    };
 
-        return (
-            <PhotoMilestoneContext.Provider value={value}>
-                {children}
-            </PhotoMilestoneContext.Provider>
-        );
+    const refreshPhotos = async (): Promise<PhotoDto[]> => {
+        setErrorPhotos(null);
+
+        if (inFlightPhotoFetch.current) {
+            const res = await inFlightPhotoFetch.current;
+            if (res) return res;
+        }
+        inFlightPhotoFetch.current = null;
+
+        setLoadingPhotos(true);
+        try {
+            const freshPhotos = await photoService.getPhotos();
+            setPhotos(freshPhotos);
+            setLastFetchTs(Date.now());
+            setIsPhotoCacheFresh(true);
+            return freshPhotos;
+        } catch (err: any) {
+            setErrorPhotos(err.message || "Unknown error");
+            throw err;
+        } finally {
+            setLoadingPhotos(false);
+        }
+    };
+
+    const invalidatePhotos = () => {
+        setIsPhotoCacheFresh(false);
+    };
+
+    const completeMilestone = async (milestoneId: number): Promise<void> => {
+        try {
+            await milestoneService.completeMilestone(milestoneId);
+            await refreshMilestones();
+        } catch (error) {
+            console.error("Error in completeMilestone:", error);
+            throw error;
+        }
+    };
+
+    const incompleteMilestone = async (milestoneId: number): Promise<void> => {
+        try {
+            await milestoneService.incompleteMilestone(milestoneId);
+            await refreshMilestones();
+        } catch (error) {
+            console.error("Error in incompleteMilestone:", error);
+            throw error;
+        }
+    };
+
+    const value: PhotoMilestoneContextValue = {
+        milestones,
+        photos,
+        loadingMilestones,
+        loadingPhotos,
+        errorMilestones,
+        errorPhotos,
+        photoMap,
+        milestoneMap,
+        getPhotos,
+        refreshPhotos,
+        invalidatePhotos,
+        getMilestones,
+        refreshMilestones,
+        invalidateMilestones,
+        completeMilestone,
+        incompleteMilestone,
+    };
+
+    return (
+        <PhotoMilestoneContext.Provider value={value}>
+            {children}
+        </PhotoMilestoneContext.Provider>
+    );
 }
 
 export function usePhotoMilestone() {
