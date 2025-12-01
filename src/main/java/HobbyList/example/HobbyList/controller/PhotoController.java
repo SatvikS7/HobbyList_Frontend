@@ -51,11 +51,15 @@ public class PhotoController {
 
     @GetMapping
     public ResponseEntity<List<PhotoDto>> getAllPhotos(Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        User user = userRepository.findUserWithPhotosByEmail(authentication.getName()).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<Photo> photos = photoRepository.findByUserIdAndIsProfileFalse(user.getId());
+
+        List<Photo> photos = user.getPhotos().stream()
+                .filter(photo -> !photo.getIsProfile())
+                .toList();
+
         List<PhotoDto> photoDtos = photos.stream()
                 .map(photo -> {
                     String bucketName = "hobbylist-photos";

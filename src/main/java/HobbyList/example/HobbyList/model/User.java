@@ -14,15 +14,15 @@ import java.util.ArrayList;
 @Entity
 @Table(name = "users")
 @Data
-public class User implements UserDetails{
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-   //@Column(nullable = false)
+    // @Column(nullable = false)
     private String firstname;
 
-    //@Column(nullable = false)
+    // @Column(nullable = false)
     private String lastname;
 
     @Column(nullable = false)
@@ -55,11 +55,18 @@ public class User implements UserDetails{
     @OneToOne
     private VerificationToken token;
 
+    @ManyToMany
+    @JoinTable(name = "user_followers", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "follower_id"))
+    private List<User> followers = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "followers")
+    private List<User> following = new ArrayList<>();
 
-    public User() {}
+    public User() {
+    }
 
-    public User(long id, String firstname, String lastname, String displayName, String email, String password, String role) {
+    public User(long id, String firstname, String lastname, String displayName, String email, String password,
+            String role) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
