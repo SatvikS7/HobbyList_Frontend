@@ -41,7 +41,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       // Update profile picture if a new one is selected
       if (newFile) {
         const ext = newFile.name.split(".").pop();
-        const presignRes = await fetch(`${API_BASE}/profile/get-upload-url`, {
+        const presignRes = await fetch(`${API_BASE}/profile/upload-url`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -52,6 +52,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             contentType: newFile.type,
           }),
         });
+        console.log(presignRes);
         const uploadUrl = await presignRes.text();
 
         // Upload directly to S3
@@ -97,7 +98,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       console.log(updates);
       
       if (Object.keys(updates).length > 0) {
-        const res = await fetch(`${API_BASE}/profile/update-profile`, {
+        const res = await fetch(`${API_BASE}/profile`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -111,6 +112,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
       // Fetch the updated profile data
       const updatedProfile = await fetch(`${API_BASE}/profile`, {
+        method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
 
