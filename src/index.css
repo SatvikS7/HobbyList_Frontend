@@ -19,8 +19,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html
-body {
+html {
+  scrollbar-gutter: stable;
+}
+
+html body {
   margin: 0;
   padding: 0;
   font-family: var(--font-family);
@@ -32,9 +35,6 @@ body {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
   min-height: 100vh;
 }
 
@@ -49,8 +49,10 @@ body {
   z-index: 1000;
   display: flex;
   flex-direction: row;
-  justify-content: space-between; /* left/right split */
-  align-items: center; /* vertically center items */
+  justify-content: space-between;
+  /* left/right split */
+  align-items: center;
+  /* vertically center items */
   box-sizing: border-box;
 }
 
@@ -58,12 +60,14 @@ body {
   font-size: larger;
   font-weight: 1000;
   color: rgb(199, 121, 3);
-  margin: 0; /* prevent shifting */
+  margin: 0;
+  /* prevent shifting */
 }
 
 .header-buttons {
   display: flex;
-  gap: 12px; /* spacing between Profile and Logout buttons */
+  gap: 12px;
+  /* spacing between Profile and Logout buttons */
   align-items: center;
 }
 
@@ -78,9 +82,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -105,65 +111,88 @@ button:focus-visible {
 
 /* Container */
 .photos-container {
-  padding: 1.5rem; /* p-6 */
+  padding: 1.5rem;
+  /* p-6 */
 }
 
 /* Title */
 .photos-title {
-  font-size: 1.5rem; /* text-2xl */
-  font-weight: bold; /* font-bold */
-  margin-bottom: 1rem; /* mb-4 */
-  color: #000; /* replace with your theme color if needed */
+  font-size: 1.5rem;
+  /* text-2xl */
+  font-weight: bold;
+  /* font-bold */
+  margin-bottom: 1rem;
+  /* mb-4 */
+  color: #000;
+  /* replace with your theme color if needed */
 }
 
 /* Filter section */
 .filter-container {
-  margin-bottom: 1.5rem; /* mb-6 */
+  margin-bottom: 1.5rem;
+  /* mb-6 */
 }
 
 .filter-label {
-  margin-right: 0.5rem; /* mr-2 */
-  font-weight: 500; /* font-medium */
+  margin-right: 0.5rem;
+  /* mr-2 */
+  font-weight: 500;
+  /* font-medium */
 }
 
 .filter-dropdown {
-  border: 1px solid #d1d5db; /* border-gray-300 */
-  border-radius: 0.25rem; /* rounded */
-  padding: 0.25rem 0.5rem; /* px-2 py-1 */
+  border: 1px solid #d1d5db;
+  /* border-gray-300 */
+  border-radius: 0.25rem;
+  /* rounded */
+  padding: 0.25rem 0.5rem;
+  /* px-2 py-1 */
 }
 
 /* Photo grid */
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* grid-cols-3 */
-  gap: 1rem; /* gap-4 */
+  grid-template-columns: repeat(3, 1fr);
+  /* grid-cols-3 */
+  gap: 1rem;
+  /* gap-4 */
 }
 
 /* Photo card */
 .photo-card {
-  border-radius: 0.75rem; /* rounded-xl */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+  border-radius: 0.75rem;
+  /* rounded-xl */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  /* shadow-md */
   overflow: hidden;
-  border: 1px solid #e5e7eb; /* border-gray-200 */
+  border: 1px solid #e5e7eb;
+  /* border-gray-200 */
 }
 
 .photo-image {
-  width: 100%; /* w-full */
-  height: 12rem; /* h-48 */
-  object-fit: cover; /* object-cover */
+  width: 100%;
+  /* w-full */
+  height: 12rem;
+  /* h-48 */
+  object-fit: cover;
+  /* object-cover */
 }
 
 .photo-details {
-  padding: 0.5rem; /* p-2 */
-  font-size: 0.875rem; /* text-sm */
+  padding: 0.5rem;
+  /* p-2 */
+  font-size: 0.875rem;
+  /* text-sm */
 }
 
 .photo-topic {
-  font-weight: 500; /* font-medium */
+  font-weight: 500;
+  /* font-medium */
 }
 
 .photo-date {
-  color: #6b7280; /* text-gray-500 */
+  color: #6b7280;
+  /* text-gray-500 */
 }
 
 .profile-container {
@@ -259,4 +288,3 @@ button:focus-visible {
   margin-top: 8px;
   color: #000;
 }
-
