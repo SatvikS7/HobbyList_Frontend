@@ -28,11 +28,18 @@ export interface PhotoDto {
 }
 
 export interface ProfileDto {
+  id: number;
   profileURL: string | null;
   description: string;
   displayName: string;
   isPrivate: boolean;
   hobbies: string[];
+  followerCount: number;
+  followingCount: number;
+  isFollowing: boolean;
+  isFollowRequested: boolean;
+  Milestones: MilestoneDto[];
+  Photos: PhotoDto[];
 }
 
 export interface AuthResponse {

@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-
-type ProfileDto = {
-    profileURL: string | null;
-    description: string;
-    displayName: string;
-    isPrivate: boolean;
-    hobbies: string[];
-}
+import { type ProfileDto } from "../types";
 
 type EditProfileModalProps = {
-  profile: { profileURL: string | null; description: string; displayName: string; isPrivate: boolean; hobbies: string[] } | ProfileDto | null;
+  profile: ProfileDto | null;
   onClose: () => void;
-  onSave: (updatedProfile: { profileURL: string | null; description: string; displayName: string; isPrivate: boolean; hobbies: string[] }) => void;
+  onSave: (updatedProfile: ProfileDto) => void;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
