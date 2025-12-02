@@ -1,15 +1,42 @@
 import React from 'react';
 import { type UserSummaryDto } from '../types';
+import { followService } from '../services/followService';
 
 interface UserDiscoveryItemProps {
   user: UserSummaryDto;
+  mode?: 'follow' | 'request';
+  onRefresh?: () => void;
 }
 
-const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user }) => {
-  const handleFollow = (e: React.MouseEvent) => {
+const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user, mode = 'follow', onRefresh }) => {
+  const handleFollow = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log(`Followed user: ${user.displayName} (ID: ${user.id})`);
-    // TODO: Implement actual follow API call
+    try {
+      await followService.followUser(user.id);
+      onRefresh?.();
+    } catch (error) {
+      console.error('Failed to follow user:', error);
+    }
+  };
+
+  const handleAccept = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await followService.acceptRequest(user.id);
+      onRefresh?.();
+    } catch (error) {
+      console.error('Failed to accept request:', error);
+    }
+  };
+
+  const handleReject = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await followService.rejectRequest(user.id);
+      onRefresh?.();
+    } catch (error) {
+      console.error('Failed to reject request:', error);
+    }
   };
 
   return (
@@ -40,12 +67,29 @@ const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user }) => {
         </div>
       </div>
       
-      <button
-        onClick={handleFollow}
-        className="px-4 py-1.5 bg-[#b99547] text-white text-sm font-medium rounded-md hover:bg-[#a07f36] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
-      >
-        Follow
-      </button>
+      {mode === 'follow' ? (
+        <button
+          onClick={handleFollow}
+          className="px-4 py-1.5 bg-[#b99547] text-white text-sm font-medium rounded-md hover:bg-[#a07f36] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
+        >
+          Follow
+        </button>
+      ) : (
+        <div className="flex gap-2">
+          <button
+            onClick={handleReject}
+            className="px-4 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+          >
+            Reject
+          </button>
+          <button
+            onClick={handleAccept}
+            className="px-4 py-1.5 bg-[#b99547] text-white text-sm font-medium rounded-md hover:bg-[#a07f36] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
+          >
+            Accept
+          </button>
+        </div>
+      )}
     </div>
   );
 };

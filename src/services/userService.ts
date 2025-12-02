@@ -6,4 +6,5 @@ export const userService = {
         const response = await api.get<UserSummaryDto[]>('/users/discover');
         return response.data;
     },
+
 }
