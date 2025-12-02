@@ -5,9 +5,11 @@ import HobbyList.example.HobbyList.model.FollowRequest;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.FollowRequestRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
+import HobbyList.example.HobbyList.service.S3Service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,10 +19,22 @@ public class FollowService {
 
     private final UserRepository userRepository;
     private final FollowRequestRepository followRequestRepository;
+    private final S3Service s3Service;
 
-    public FollowService(UserRepository userRepository, FollowRequestRepository followRequestRepository) {
+    public FollowService(UserRepository userRepository, FollowRequestRepository followRequestRepository,
+            S3Service s3Service) {
         this.userRepository = userRepository;
         this.followRequestRepository = followRequestRepository;
+        this.s3Service = s3Service;
+    }
+
+    private String getPresignURL(String profileURL) {
+        if (profileURL == null) {
+            return null;
+        }
+        String bucketName = "hobbylist-photos";
+        String key = profileURL.substring(profileURL.indexOf("profile/"));
+        return s3Service.generateDownloadUrl(bucketName, key);
     }
 
     @Transactional
@@ -130,15 +144,21 @@ public class FollowService {
                 .collect(Collectors.toList());
     }
 
-    public List<FollowRequest> getPendingRequests(User target) {
-        return followRequestRepository.findByTargetAndStatus(target, FollowRequest.RequestStatus.PENDING);
+    public List<UserSummaryDto> getPendingRequests(User target) {
+        List<FollowRequest> requests = followRequestRepository.findByTargetAndStatus(target,
+                FollowRequest.RequestStatus.PENDING);
+        List<UserSummaryDto> dtos = new ArrayList<>();
+        for (FollowRequest request : requests) {
+            dtos.add(convertToSummaryDto(request.getRequester()));
+        }
+        return dtos;
     }
 
     private UserSummaryDto convertToSummaryDto(User user) {
         return new UserSummaryDto(
                 user.getId(),
                 user.getDisplayName(),
-                user.getProfileURL(),
+                getPresignURL(user.getProfileURL()),
                 user.getHobbies());
     }
 }

@@ -59,7 +59,7 @@ public class FollowController {
     }
 
     @GetMapping("/requests")
-    public ResponseEntity<List<FollowRequest>> getPendingRequests(Authentication authentication) {
+    public ResponseEntity<List<UserSummaryDto>> getPendingRequests(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
         return ResponseEntity.ok(followService.getPendingRequests(user));
     }

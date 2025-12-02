@@ -7,6 +7,7 @@ import HobbyList.example.HobbyList.dto.UserSummaryDto;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import HobbyList.example.HobbyList.service.S3Service;
 
 import java.util.Collections;
 import java.util.List;
