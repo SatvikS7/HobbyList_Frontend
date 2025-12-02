@@ -34,7 +34,7 @@ export interface ProfileDto {
   displayName: string;
   isPrivate: boolean;
   hobbies: string[];
-  followerCount: number;
+  followersCount: number;
   followingCount: number;
   isFollowing: boolean;
   isFollowRequested: boolean;

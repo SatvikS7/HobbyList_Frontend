@@ -37,7 +37,7 @@ function ProfilePage() {
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
           <div className="relative h-32 w-full bg-gradient-to-r from-[#fadd9e] to-[#b99547]"></div>
           <div className="px-6 pb-6">
-            <div className="relative flex items-end -mt-12 mb-4">
+            <div className="relative flex items-start -mt-12 mb-4">
               <div className="relative">
                 <img
                   src={profile.profileURL || "src/assets/default-avatar.png"}
@@ -45,12 +45,20 @@ function ProfilePage() {
                   className="h-24 w-24 rounded-full border-4 border-white object-cover bg-white"
                 />
               </div>
-              <div className="ml-4 mb-1 flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">
+              <div className="ml-4 mt-12 flex-1">
+                <h1 className="text-2xl font-bold text-gray-900 leading-tight">
                   {profile.displayName}
                 </h1>
+                <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                  <span className="hover:text-[#b99547] cursor-pointer transition-colors">
+                    <span className="font-bold text-gray-900">{profile.followersCount}</span> Followers
+                  </span>
+                  <span className="hover:text-[#b99547] cursor-pointer transition-colors">
+                    <span className="font-bold text-gray-900">{profile.followingCount}</span> Following
+                  </span>
+                </div>
               </div>
-              <div>
+              <div className="mt-12">
                 <button
                   onClick={() => setIsEditModalOpen(true)}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
