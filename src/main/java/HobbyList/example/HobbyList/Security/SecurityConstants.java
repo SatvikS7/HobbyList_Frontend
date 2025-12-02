@@ -17,6 +17,9 @@ public final class SecurityConstants {
             "/api/milestones/**",
             "/api/milestones/no-photo",
             "/api/milestones/all",
+            "/api/users/discover",
+            "/api/users/search",
+            
     };
 
     private SecurityConstants() {

@@ -31,7 +31,12 @@ public class UserController {
     }
 
     @GetMapping("/discover")
-    public ResponseEntity<List<UserSummaryDto>> discoverUsers() {
-        return ResponseEntity.ok(userService.getDiscoveryUsers());
+    public ResponseEntity<List<UserSummaryDto>> discoverUsers(Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<UserSummaryDto> discoveryUsers = userService.getDiscoveryUsers(user.getId());
+        return ResponseEntity.ok(discoveryUsers);
     }
 }

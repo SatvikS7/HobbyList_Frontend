@@ -138,6 +138,7 @@ public class FollowService {
         return new UserSummaryDto(
                 user.getId(),
                 user.getDisplayName(),
-                user.getProfileURL());
+                user.getProfileURL(),
+                user.getHobbies());
     }
 }

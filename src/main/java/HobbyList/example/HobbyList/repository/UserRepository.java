@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import HobbyList.example.HobbyList.model.User;
@@ -17,9 +18,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByUsernameContainingIgnoreCase(String username);
 
-    @Query(value = "SELECT * FROM users ORDER BY RAND() LIMIT 10", nativeQuery = true)
-    List<User> findRandomUsers();
+    @Query(value = "SELECT * FROM users u WHERE u.id != :currentUserId AND u.id NOT IN (SELECT uf.user_id FROM user_followers uf WHERE uf.follower_id = :currentUserId) ORDER BY RANDOM() LIMIT 10", nativeQuery = true)
+    List<User> findRandomUsersNotFollowedBy(@Param("currentUserId") Long currentUserId);
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.photos WHERE u.email = :email")
-    Optional<User> findUserWithPhotosByEmail(String email);
+    Optional<User> findUserWithPhotosByEmail(@Param("email") String email);
 }

@@ -7,7 +7,6 @@ import HobbyList.example.HobbyList.dto.UserSummaryDto;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.UserRepository;
 import org.springframework.stereotype.Service;
-import HobbyList.example.HobbyList.service.S3Service;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +25,15 @@ public class UserService {
         this.userRepository = userRepository;
         this.followService = followService;
         this.s3Service = s3Service;
+    }
+
+    private String getPresignURL(String profileURL) {
+        if (profileURL == null) {
+            return null;
+        }
+        String bucketName = "hobbylist-photos";
+        String key = profileURL.substring(profileURL.indexOf("profile/"));
+        return s3Service.generateDownloadUrl(bucketName, key);
     }
 
     public ProfileDto getUserProfile(User requester, Long targetUserId) {
@@ -52,12 +60,7 @@ public class UserService {
         }
 
         String profileURL = target.getProfileURL();
-        String presignedUrl = null;
-        if (profileURL != null) {
-            String bucketName = "hobbylist-photos";
-            String key = profileURL.substring(profileURL.indexOf("profile/"));
-            presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
-        }
+        String presignedUrl = getPresignURL(profileURL);
 
         return new ProfileDto(
                 target.getId(),
@@ -80,8 +83,8 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public List<UserSummaryDto> getDiscoveryUsers() {
-        return userRepository.findRandomUsers().stream()
+    public List<UserSummaryDto> getDiscoveryUsers(Long currentUserId) {
+        return userRepository.findRandomUsersNotFollowedBy(currentUserId).stream()
                 .map(this::convertToSummaryDto)
                 .collect(Collectors.toList());
     }
@@ -90,6 +93,7 @@ public class UserService {
         return new UserSummaryDto(
                 user.getId(),
                 user.getDisplayName(),
-                user.getProfileURL());
+                getPresignURL(user.getProfileURL()),
+                user.getHobbies());
     }
 }
