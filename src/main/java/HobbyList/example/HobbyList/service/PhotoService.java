@@ -14,9 +14,11 @@ import HobbyList.example.HobbyList.repository.PhotoRepository;
 @Service
 public class PhotoService {
     private final PhotoRepository photoRepository;
+    private final S3Service s3Service;
 
-    public PhotoService(PhotoRepository photoRepository) {
+    public PhotoService(PhotoRepository photoRepository, S3Service s3Service) {
         this.photoRepository = photoRepository;
+        this.s3Service = s3Service;
     }
     
     public Photo getPhotoById(Long id) {
@@ -31,11 +33,12 @@ public class PhotoService {
         photoRepository.deleteById(id);
     }
 
-    public PhotoDto toDto(Photo photo, String preSignedURL) {
+    public PhotoDto toDto(Photo photo, String imageUrl) {
+        String preSignedUrl = s3Service.generateDownloadUrl("hobbylist-photos", imageUrl.substring(imageUrl.indexOf("photos/")));
         return new PhotoDto(
             photo.getId(),
             photo.getTopic(),
-            preSignedURL,
+            preSignedUrl,
             photo.getDescription(),
             photo.getUploadDate(),
             photo.getTaggedMilestones() != null ? photo.getTaggedMilestones().stream().map(Milestone::getId).collect(Collectors.toList()) : null

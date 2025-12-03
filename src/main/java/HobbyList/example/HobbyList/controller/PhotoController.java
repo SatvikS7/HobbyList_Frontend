@@ -62,11 +62,7 @@ public class PhotoController {
 
         List<PhotoDto> photoDtos = photos.stream()
                 .map(photo -> {
-                    String bucketName = "hobbylist-photos";
-                    String imageURL = photo.getImageUrl();
-                    String key = imageURL.substring(imageURL.indexOf("photos/"));
-                    String presignedUrl = s3Service.generateDownloadUrl(bucketName, key);
-                    return photoService.toDto(photo, presignedUrl);
+                    return photoService.toDto(photo, photo.getImageUrl());
                 })
                 .toList();
         return ResponseEntity.ok(photoDtos);
