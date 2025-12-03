@@ -25,4 +25,14 @@ export const followService = {
         const response = await api.post(`/users/requests/${userId}/reject`);
         return response.data;
     },
+
+    getFollowers: async (userId: number) => {
+        const response = await api.get(`/users/${userId}/followers`);
+        return response.data;
+    },
+
+    getFollowing: async (userId: number) => {
+        const response = await api.get(`/users/${userId}/following`);
+        return response.data;
+    },
 }

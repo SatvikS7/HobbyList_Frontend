@@ -4,12 +4,15 @@ import { useProfile } from "../contexts/ProfileContext";
 import EditProfileModal from "../components/EditProfileModal";
 import MilestoneSection from "../components/MilestoneSection";
 import PhotoSection from "../components/PhotoSection";
+import UserListModal from "../components/UserListModal";
 
 function ProfilePage() {
   const { profile, getProfile, updateProfileState } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [activeModal, setActiveModal] = useState<'followers' | 'following' | null>(null);
 
   useEffect(() => {
     getProfile();
@@ -50,12 +53,18 @@ function ProfilePage() {
                   {profile.displayName}
                 </h1>
                 <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                  <span className="hover:text-[#b99547] cursor-pointer transition-colors">
+                  <button 
+                    onClick={() => setActiveModal('followers')}
+                    className="hover:text-[#b99547] cursor-pointer transition-colors focus:outline-none"
+                  >
                     <span className="font-bold text-gray-900">{profile.followersCount}</span> Followers
-                  </span>
-                  <span className="hover:text-[#b99547] cursor-pointer transition-colors">
+                  </button>
+                  <button 
+                    onClick={() => setActiveModal('following')}
+                    className="hover:text-[#b99547] cursor-pointer transition-colors focus:outline-none"
+                  >
                     <span className="font-bold text-gray-900">{profile.followingCount}</span> Following
-                  </span>
+                  </button>
                 </div>
               </div>
               <div className="mt-12">
@@ -133,6 +142,16 @@ function ProfilePage() {
           onSave={(updatedProfile) => {
             updateProfileState(updatedProfile);
           }}
+        />
+      )}
+
+      {activeModal && (
+        <UserListModal
+          isOpen={!!activeModal}
+          onClose={() => setActiveModal(null)}
+          title={activeModal === 'followers' ? 'Followers' : 'Following'}
+          type={activeModal}
+          userId={profile.id}
         />
       )}
     </div>

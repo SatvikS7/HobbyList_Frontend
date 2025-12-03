@@ -4,7 +4,7 @@ import { followService } from '../services/followService';
 
 interface UserDiscoveryItemProps {
   user: UserSummaryDto;
-  mode?: 'follow' | 'request';
+  mode?: 'follow' | 'request' | 'none';
   onRefresh?: () => void;
 }
 
@@ -74,7 +74,7 @@ const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user, mode = 'fol
         >
           Follow
         </button>
-      ) : (
+      ) : mode === 'request' ? (
         <div className="flex gap-2">
           <button
             onClick={handleReject}
@@ -89,7 +89,7 @@ const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user, mode = 'fol
             Accept
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
