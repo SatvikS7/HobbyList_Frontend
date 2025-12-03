@@ -38,8 +38,8 @@ export interface ProfileDto {
   followingCount: number;
   isFollowing: boolean;
   isFollowRequested: boolean;
-  Milestones: MilestoneDto[];
-  Photos: PhotoDto[];
+  milestones: MilestoneDto[];
+  photos: PhotoDto[];
 }
 
 export interface UserSummaryDto {

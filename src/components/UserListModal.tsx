@@ -30,6 +30,7 @@ const UserListModal: React.FC<UserListModalProps> = ({ isOpen, onClose, title, t
       } else {
         data = await followService.getFollowing(userId);
       }
+      
       if (Array.isArray(data)) {
         setUsers(data);
       } else {
@@ -79,7 +80,7 @@ const UserListModal: React.FC<UserListModalProps> = ({ isOpen, onClose, title, t
           ) : users && users.length > 0 ? (
             <div className="space-y-2">
               {users.map((user) => (
-                <UserDiscoveryItem key={user.id} user={user} mode="none" />
+                <UserDiscoveryItem key={user.id} user={user} mode="none" onModalClose={onClose} />
               ))}
             </div>
           ) : (

@@ -10,9 +10,10 @@ interface MilestoneCardProps {
   milestone: MilestoneDto;
   onClose: () => void;
   onDelete?: () => void;
+  isReadOnly?: boolean;
 }
 
-const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete }) => {
+const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete, isReadOnly = false }) => {
   const { milestoneMap, photoMap, refreshMilestones, photos, invalidatePhotos } = usePhotoMilestone();
   const { profile } = useProfile();
   const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
@@ -195,7 +196,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
           
           {/* Actions */}
           <div className="absolute top-3 right-12 flex gap-2">
-            {!isEditing && (
+            {!isEditing && !isReadOnly && (
               <>
                 <button
                   className="text-[#b99547] hover:text-[#a07f36] px-2 py-1"
@@ -373,12 +374,14 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-semibold text-gray-700">Sub-milestones</h3>
-                  <button
-                    onClick={() => setIsAddingSubtask(!isAddingSubtask)}
-                    className="text-sm text-[#b99547] hover:text-[#a07f36] font-medium"
-                  >
-                    {isAddingSubtask ? "Cancel" : "+ Add Subtask"}
-                  </button>
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => setIsAddingSubtask(!isAddingSubtask)}
+                      className="text-sm text-[#b99547] hover:text-[#a07f36] font-medium"
+                    >
+                      {isAddingSubtask ? "Cancel" : "+ Add Subtask"}
+                    </button>
+                  )}
                 </div>
 
                 {isAddingSubtask && (

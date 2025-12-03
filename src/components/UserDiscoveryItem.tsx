@@ -1,14 +1,18 @@
 import React from 'react';
 import { type UserSummaryDto } from '../types';
 import { followService } from '../services/followService';
+import { useNavigate } from 'react-router-dom';
 
 interface UserDiscoveryItemProps {
   user: UserSummaryDto;
   mode?: 'follow' | 'request' | 'none';
   onRefresh?: () => void;
+  onModalClose?: () => void;
 }
 
-const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user, mode = 'follow', onRefresh }) => {
+const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user, mode = 'follow', onRefresh, onModalClose }) => {
+  const navigate = useNavigate();
+
   const handleFollow = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -39,8 +43,16 @@ const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user, mode = 'fol
     }
   };
 
+  const handleProfileClick = () => {
+    onModalClose?.();
+    navigate(`/profile-page?userId=${user.id}`);
+  };
+
   return (
-    <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+    <div 
+        className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+        onClick={handleProfileClick}
+    >
       <div className="flex items-center gap-4">
         <img
           src={user.profileUrl || "src/assets/default-avatar.png"}
