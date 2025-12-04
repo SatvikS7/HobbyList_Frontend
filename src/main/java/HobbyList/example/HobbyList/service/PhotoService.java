@@ -1,13 +1,11 @@
 package HobbyList.example.HobbyList.service;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import HobbyList.example.HobbyList.model.Milestone;
 import HobbyList.example.HobbyList.model.Photo;
-import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.dto.PhotoDto;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 
@@ -22,14 +20,23 @@ public class PhotoService {
     }
     
     public Photo getPhotoById(Long id) {
+        if (id == null) {
+            return null;
+        }
         return photoRepository.findById(id).orElse(null);
     }
 
     public Photo savePhoto(Photo photo) {
-        return photoRepository.save(photo);
+        if (photo == null) {
+            return null;
+        }
+        return photoRepository.save(photo); 
     }
 
     public void deletePhoto(Long id) {
+        if (id == null) {
+            return;
+        }
         photoRepository.deleteById(id);
     }
 

@@ -6,7 +6,6 @@ import HobbyList.example.HobbyList.model.FollowRequest;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.FollowRequestRepository;
 import HobbyList.example.HobbyList.repository.UserRepository;
-import HobbyList.example.HobbyList.service.S3Service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

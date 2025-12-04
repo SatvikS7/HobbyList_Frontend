@@ -1,7 +1,5 @@
 package HobbyList.example.HobbyList.dto;
 
-import java.util.List;
-
 public interface UserSummaryProjection {
     Long getId();
 

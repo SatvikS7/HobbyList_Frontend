@@ -1,6 +1,5 @@
 package HobbyList.example.HobbyList.controller;
 
-import HobbyList.example.HobbyList.dto.ProfileDto;
 import HobbyList.example.HobbyList.dto.UserSummaryDto;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.UserRepository;

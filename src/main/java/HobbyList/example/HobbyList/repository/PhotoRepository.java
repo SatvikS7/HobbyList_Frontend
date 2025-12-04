@@ -1,7 +1,6 @@
 package HobbyList.example.HobbyList.repository;
 
 import HobbyList.example.HobbyList.model.Photo;
-import HobbyList.example.HobbyList.model.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,7 +1,6 @@
 package HobbyList.example.HobbyList.controller;
 
 import HobbyList.example.HobbyList.model.Milestone;
-import HobbyList.example.HobbyList.model.Photo;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.MilestoneRepository;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
@@ -17,9 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 

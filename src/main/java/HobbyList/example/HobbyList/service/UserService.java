@@ -6,18 +6,12 @@ import HobbyList.example.HobbyList.dto.ProfileDto;
 import HobbyList.example.HobbyList.dto.UserSummaryDto;
 import HobbyList.example.HobbyList.dto.UserSummaryProjection;
 import HobbyList.example.HobbyList.model.User;
-import HobbyList.example.HobbyList.model.Milestone;
-import HobbyList.example.HobbyList.model.Photo;
 import HobbyList.example.HobbyList.repository.UserRepository;
 import org.springframework.stereotype.Service;
-import HobbyList.example.HobbyList.service.S3Service;
-import HobbyList.example.HobbyList.service.MilestoneService;
-import HobbyList.example.HobbyList.service.PhotoService;
 import HobbyList.example.HobbyList.repository.MilestoneRepository;
 import HobbyList.example.HobbyList.repository.PhotoRepository;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -120,9 +114,9 @@ public class UserService {
         try {
             if (user.getHobbies() != null) {
                 hobbiesList = objectMapper.readValue(
-                    user.getHobbies(),
-                    new TypeReference<List<String>>() {}
-                );
+                        user.getHobbies(),
+                        new TypeReference<List<String>>() {
+                        });
             }
         } catch (Exception e) {
             System.err.println("Error parsing hobbies for user " + user.getId() + ": " + e.getMessage());
