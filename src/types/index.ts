@@ -47,6 +47,7 @@ export interface UserSummaryDto {
   displayName: string;
   profileUrl: string | null;
   hobbies: string[];
+  relationship: 'FOLLOWING' | 'REQUESTED' | 'NONE';
 }
 
 export interface AuthResponse {

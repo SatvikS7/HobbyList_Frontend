@@ -80,12 +80,32 @@ const UserDiscoveryItem: React.FC<UserDiscoveryItemProps> = ({ user, mode = 'fol
       </div>
       
       {mode === 'follow' ? (
-        <button
-          onClick={handleFollow}
-          className="px-4 py-1.5 bg-[#b99547] text-white text-sm font-medium rounded-md hover:bg-[#a07f36] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
-        >
-          Follow
-        </button>
+        <>
+          {user.relationship === 'NONE' && (
+            <button
+              onClick={handleFollow}
+              className="px-4 py-1.5 bg-[#b99547] text-white text-sm font-medium rounded-md hover:bg-[#a07f36] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
+            >
+              Follow
+            </button>
+          )}
+          {user.relationship === 'REQUESTED' && (
+            <button
+              disabled
+              className="px-4 py-1.5 bg-gray-100 text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
+            >
+              Requested
+            </button>
+          )}
+          {user.relationship === 'FOLLOWING' && (
+            <button
+              disabled
+              className="px-4 py-1.5 bg-gray-100 text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
+            >
+              Following
+            </button>
+          )}
+        </>
       ) : mode === 'request' ? (
         <div className="flex gap-2">
           <button
