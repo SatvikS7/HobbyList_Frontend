@@ -115,7 +115,7 @@ public class ProfileController {
          * photoDto.size(), photoDto.contentType());
          * photoRepository.save(photo);
          */
-        user.setProfileURL(photoDto.imageUrl());
+        user.setProfileUrl(photoDto.imageUrl());
         userRepository.save(user);
 
         return ResponseEntity.ok("Photo metadata saved successfully");
@@ -195,7 +195,7 @@ public class ProfileController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        ArrayList<String> hobbyNames = new ArrayList<>();
+        List<String> hobbyNames = new ArrayList<>();
         for (HobbyDto hobby : hobbies) {
             hobbyNames.add(hobby.name());
         }

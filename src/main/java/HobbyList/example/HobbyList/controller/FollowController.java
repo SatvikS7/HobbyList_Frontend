@@ -47,15 +47,17 @@ public class FollowController {
     }
 
     @GetMapping("/{id}/followers")
-    public ResponseEntity<List<UserSummaryDto>> getFollowers(@PathVariable Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return ResponseEntity.ok(followService.getFollowers(user));
+    public ResponseEntity<List<UserSummaryDto>> getFollowers(@PathVariable Long id, Authentication authentication) {
+        User targetUser = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User currentUser = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        return ResponseEntity.ok(followService.getFollowers(targetUser, currentUser));
     }
 
     @GetMapping("/{id}/following")
-    public ResponseEntity<List<UserSummaryDto>> getFollowing(@PathVariable Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return ResponseEntity.ok(followService.getFollowing(user));
+    public ResponseEntity<List<UserSummaryDto>> getFollowing(@PathVariable Long id, Authentication authentication) {
+        User targetUser = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User currentUser = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        return ResponseEntity.ok(followService.getFollowing(targetUser, currentUser));
     }
 
     @GetMapping("/requests")
@@ -66,9 +68,11 @@ public class FollowController {
 
     @PostMapping("/requests/{requestId}/accept")
     public ResponseEntity<String> acceptRequest(@PathVariable Long requestId, Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User targetUser = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User requester = userRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
         try {
-            followService.acceptRequest(requestId, user);
+            followService.acceptRequest(requester, targetUser);
             return ResponseEntity.ok("Request accepted");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -77,9 +81,11 @@ public class FollowController {
 
     @PostMapping("/requests/{requestId}/reject")
     public ResponseEntity<String> rejectRequest(@PathVariable Long requestId, Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User targetUser = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User requester = userRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
         try {
-            followService.rejectRequest(requestId, user);
+            followService.rejectRequest(requester, targetUser);
             return ResponseEntity.ok("Request rejected");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

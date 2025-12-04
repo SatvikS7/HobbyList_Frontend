@@ -3,13 +3,17 @@ package HobbyList.example.HobbyList.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "users")
@@ -38,7 +42,7 @@ public class User implements UserDetails {
 
     private String role;
     private boolean active = false;
-    private String profileURL;
+    private String profileUrl;
     private String description;
 
     @Column(nullable = false)
@@ -47,7 +51,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private boolean newAccount = true;
 
-    private ArrayList<String> hobbies = new ArrayList<>();
+    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<String> hobbies = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos;
@@ -57,10 +63,10 @@ public class User implements UserDetails {
 
     @ManyToMany
     @JoinTable(name = "user_followers", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "follower_id"))
-    private List<User> followers = new ArrayList<>();
+    private Set<User> followers = new HashSet<>();
 
     @ManyToMany(mappedBy = "followers")
-    private List<User> following = new ArrayList<>();
+    private Set<User> following = new HashSet<>();
 
     public User() {
     }
@@ -129,4 +135,19 @@ public class User implements UserDetails {
     public void setActive(boolean active) {
         this.active = active;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof User))
+            return false;
+        return id != 0 && id == ((User) o).getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
 }

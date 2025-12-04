@@ -26,8 +26,12 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<UserSummaryDto>> searchUsers(@RequestParam String query) {
-        return ResponseEntity.ok(userService.searchUsers(query));
+    public ResponseEntity<List<UserSummaryDto>> searchUsers(@RequestParam String query, Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(userService.searchUsers(query, user.getId()));
     }
 
     @GetMapping("/discover")

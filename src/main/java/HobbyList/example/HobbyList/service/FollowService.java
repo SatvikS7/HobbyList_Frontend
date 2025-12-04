@@ -1,6 +1,7 @@
 package HobbyList.example.HobbyList.service;
 
 import HobbyList.example.HobbyList.dto.UserSummaryDto;
+import HobbyList.example.HobbyList.dto.UserSummaryProjection;
 import HobbyList.example.HobbyList.model.FollowRequest;
 import HobbyList.example.HobbyList.model.User;
 import HobbyList.example.HobbyList.repository.FollowRequestRepository;
@@ -8,6 +9,9 @@ import HobbyList.example.HobbyList.repository.UserRepository;
 import HobbyList.example.HobbyList.service.S3Service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,20 +24,22 @@ public class FollowService {
     private final UserRepository userRepository;
     private final FollowRequestRepository followRequestRepository;
     private final S3Service s3Service;
+    private final ObjectMapper objectMapper;
 
     public FollowService(UserRepository userRepository, FollowRequestRepository followRequestRepository,
-            S3Service s3Service) {
+            S3Service s3Service, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.followRequestRepository = followRequestRepository;
         this.s3Service = s3Service;
+        this.objectMapper = objectMapper;
     }
 
-    private String getPresignURL(String profileURL) {
-        if (profileURL == null) {
+    private String getPresignUrl(String profileUrl) {
+        if (profileUrl == null) {
             return null;
         }
         String bucketName = "hobbylist-photos";
-        String key = profileURL.substring(profileURL.indexOf("profile/"));
+        String key = profileUrl.substring(profileUrl.indexOf("profile/"));
         return s3Service.generateDownloadUrl(bucketName, key);
     }
 
@@ -87,8 +93,8 @@ public class FollowService {
     }
 
     @Transactional
-    public void acceptRequest(Long requestId, User target) {
-        FollowRequest request = followRequestRepository.findById(requestId)
+    public void acceptRequest(User requester, User target) {
+        FollowRequest request = followRequestRepository.findByRequesterAndTarget(requester, target)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found"));
 
         if (request.getTarget().getId() != target.getId()) {
@@ -98,21 +104,24 @@ public class FollowService {
         if (request.getStatus() != FollowRequest.RequestStatus.PENDING) {
             throw new IllegalStateException("Request is not pending");
         }
-
+        System.out.println("IM HERE");
         request.setStatus(FollowRequest.RequestStatus.ACCEPTED);
         followRequestRepository.save(request);
 
-        User requester = request.getRequester();
-        target.getFollowers().add(requester);
-        requester.getFollowing().add(target);
+        try {
+            target.getFollowers().add(requester);
+            requester.getFollowing().add(target);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to accept follow request", e);
+        }
 
         userRepository.save(target);
         userRepository.save(requester);
     }
 
     @Transactional
-    public void rejectRequest(Long requestId, User target) {
-        FollowRequest request = followRequestRepository.findById(requestId)
+    public void rejectRequest(User requester, User target) {
+        FollowRequest request = followRequestRepository.findByRequesterAndTarget(requester, target)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found"));
 
         if (request.getTarget().getId() != target.getId()) {
@@ -132,33 +141,43 @@ public class FollowService {
         return request.isPresent() && request.get().getStatus() == FollowRequest.RequestStatus.PENDING;
     }
 
-    public List<UserSummaryDto> getFollowers(User user) {
-        return user.getFollowers().stream()
+    public List<UserSummaryDto> getFollowers(User targetUser, User currentUser) {
+        return userRepository.findFollowers(targetUser.getId(), currentUser.getId()).stream()
                 .map(this::convertToSummaryDto)
                 .collect(Collectors.toList());
     }
 
-    public List<UserSummaryDto> getFollowing(User user) {
-        return user.getFollowing().stream()
+    public List<UserSummaryDto> getFollowing(User targetUser, User currentUser) {
+        return userRepository.findFollowing(targetUser.getId(), currentUser.getId()).stream()
                 .map(this::convertToSummaryDto)
                 .collect(Collectors.toList());
     }
 
     public List<UserSummaryDto> getPendingRequests(User target) {
-        List<FollowRequest> requests = followRequestRepository.findByTargetAndStatus(target,
-                FollowRequest.RequestStatus.PENDING);
-        List<UserSummaryDto> dtos = new ArrayList<>();
-        for (FollowRequest request : requests) {
-            dtos.add(convertToSummaryDto(request.getRequester()));
-        }
-        return dtos;
+        return userRepository.findPendingRequests(target.getId()).stream()
+                .map(this::convertToSummaryDto)
+                .collect(Collectors.toList());
     }
 
-    private UserSummaryDto convertToSummaryDto(User user) {
+    private UserSummaryDto convertToSummaryDto(UserSummaryProjection user) {
+        List<String> hobbiesList = new ArrayList<>();
+
+        try {
+            if (user.getHobbies() != null) {
+                hobbiesList = objectMapper.readValue(
+                        user.getHobbies(),
+                        new TypeReference<List<String>>() {
+                        });
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing hobbies for user " + user.getId() + ": " + e.getMessage());
+        }
+
         return new UserSummaryDto(
                 user.getId(),
                 user.getDisplayName(),
-                getPresignURL(user.getProfileURL()),
-                user.getHobbies());
+                getPresignUrl(user.getProfileUrl()),
+                hobbiesList,
+                user.getRelationship());
     }
 }
