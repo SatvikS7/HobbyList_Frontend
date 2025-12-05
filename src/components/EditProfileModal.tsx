@@ -136,9 +136,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         <div className="flex flex-col gap-4">
           {/* Profile Picture Preview */}
           <div className="flex flex-col items-center">
-            {profile?.profileURL ? (
+            {profile?.profileUrl ? (
               <img
-                src={profile.profileURL}
+                src={profile.profileUrl}
                 alt="Profile"
                 className="w-24 h-24 rounded-full object-cover border border-gray-300 mb-2"
               />

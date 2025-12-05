@@ -7,7 +7,7 @@ export const followService = {
     },
 
     unfollowUser: async (userId: number) => {
-        const response = await api.delete(`/users/${userId}/unfollow`);
+        const response = await api.post(`/users/${userId}/unfollow`);
         return response.data;
     },
 

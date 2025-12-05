@@ -4,17 +4,18 @@ import { useProfile } from "../contexts/ProfileContext";
 import PhotoCard from "./PhotoCard";
 import { milestoneService } from "../services/milestoneService";
 import toast from "react-hot-toast";
-import { type MilestoneDto } from "../types";
+import { type MilestoneDto, type PhotoDto } from "../types";
 
 interface MilestoneCardProps {
   milestone: MilestoneDto;
   onClose: () => void;
   onDelete?: () => void;
   isReadOnly?: boolean;
+  photos?: PhotoDto[];
 }
 
-const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete, isReadOnly = false }) => {
-  const { milestoneMap, photoMap, refreshMilestones, photos, invalidatePhotos } = usePhotoMilestone();
+const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete, isReadOnly = false, photos }) => {
+  const { milestoneMap, photoMap, refreshMilestones, photos: contextPhotos, invalidatePhotos } = usePhotoMilestone();
   const { profile } = useProfile();
   const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
 
@@ -47,7 +48,12 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
   }, [milestone]);
 
   const taggedPhotos = milestone.taggedPhotoIds
-    .map((id) => photoMap.get(id))
+    .map((id) => {
+        if (photos) {
+            return photos.find(p => p.id === id);
+        }
+        return photoMap.get(id);
+    })
     .filter(Boolean);
 
   const togglePhotoSelection = (photoId: number) => {
@@ -242,10 +248,25 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                     type="date"
                     className="w-full p-2 border border-gray-300 rounded-md text-black"
                     value={editDate}
-                    min={new Date().toISOString().split("T")[0]}
+                    min={(() => {
+                      let minDateStr = new Date().toISOString().split("T")[0];
+                      if (milestone.subMilestones && milestone.subMilestones.length > 0) {
+                        const latestChildTimestamp = milestone.subMilestones.reduce((max, child) => {
+                          const t = new Date(child.dueDate).getTime();
+                          return t > max ? t : max;
+                        }, 0);
+                        if (latestChildTimestamp > 0) {
+                          const latestChildDateStr = new Date(latestChildTimestamp).toISOString().split("T")[0];
+                          if (latestChildDateStr > minDateStr) {
+                            minDateStr = latestChildDateStr;
+                          }
+                        }
+                      }
+                      return minDateStr;
+                    })()}
                     max={
-                      milestone.parentId 
-                        ? new Date(milestoneMap.get(milestone.parentId)?.dueDate || "").toISOString().split("T")[0]
+                      milestone.parentId && milestoneMap.get(milestone.parentId)?.dueDate
+                        ? new Date(milestoneMap.get(milestone.parentId)!.dueDate).toISOString().split("T")[0]
                         : undefined
                     }
                     onChange={(e) => setEditDate(e.target.value)}

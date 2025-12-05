@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext.tsx";
 import PhotoCard from "../components/PhotoCard.tsx";
-import { type PhotoDto } from "../types";
+import { type PhotoDto, type MilestoneDto } from "../types";
 
 type PhotoSectionProps = {
   initialTag?: string;
   photos?: PhotoDto[];
+  milestones?: MilestoneDto[];
 };
 
-const PhotoSection: React.FC<PhotoSectionProps> = ({ initialTag = "All", photos: propPhotos }) => {
-  const { photos: contextPhotos, getPhotos } = usePhotoMilestone();
+const PhotoSection: React.FC<PhotoSectionProps> = ({ initialTag = "All", photos: propPhotos, milestones: propMilestones }) => {
+  const { photos: contextPhotos, getPhotos, milestones: contextMilestones } = usePhotoMilestone();
   
   // Use props if available, otherwise fallback to context
   const photos = propPhotos || contextPhotos;
+  const milestones = propMilestones || contextMilestones || [];
 
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -100,6 +102,7 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({ initialTag = "All", photos:
           uploadDate={selectedPhoto.uploadDate}
           taggedMilestoneIds={selectedPhoto.taggedMilestoneIds}
           onClose={() => setSelectedPhoto(null)}
+          milestones={milestones}
         />
       )}
     </div>

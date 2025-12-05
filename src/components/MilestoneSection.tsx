@@ -241,6 +241,7 @@ function MilestoneSection({
           onClose={() => setSelectedMilestone(null)}
           onDelete={() => handleDeleteMilestone(selectedMilestone.id)}
           isReadOnly={isReadOnly}
+          photos={photos || undefined}
         />
       )}
     </div>

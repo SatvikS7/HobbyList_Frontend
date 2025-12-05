@@ -1,5 +1,6 @@
 import React from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
+import { type MilestoneDto } from "../types";
 
 interface PhotoCardProps {
   imageUrl: string;
@@ -8,6 +9,7 @@ interface PhotoCardProps {
   uploadDate: string;
   taggedMilestoneIds: number[];
   onClose: () => void;
+  milestones?: MilestoneDto[];
 }
 
 const PhotoCard: React.FC<PhotoCardProps> = ({
@@ -17,12 +19,18 @@ const PhotoCard: React.FC<PhotoCardProps> = ({
   uploadDate,
   taggedMilestoneIds,
   onClose,
+  milestones,
 }) => {
   const { milestoneMap } = usePhotoMilestone();
+  
   const taggedMilestones = taggedMilestoneIds
-    .map(id => milestoneMap.get(id))
+    .map(id => {
+        if (milestones) {
+            return milestones.find(m => m.id === id);
+        }
+        return milestoneMap.get(id);
+    })
     .filter(Boolean);
-  console.log("Tagged Milestones:", taggedMilestoneIds);
 
   return (
     <div

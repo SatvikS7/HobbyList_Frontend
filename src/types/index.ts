@@ -29,7 +29,7 @@ export interface PhotoDto {
 
 export interface ProfileDto {
   id: number;
-  profileURL: string | null;
+  profileUrl: string | null;
   description: string;
   displayName: string;
   isPrivate: boolean;

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from "react-router-dom";
 import { useProfile } from "../contexts/ProfileContext";
-import { useAuth } from "../contexts/AuthContext";
 import { profileService } from "../services/profileService";
+import { followService } from "../services/followService";
 import { type ProfileDto } from "../types";
 import EditProfileModal from "./EditProfileModal";
 import MilestoneSection from "./MilestoneSection";
@@ -14,7 +14,6 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
-  const { userId: authUserId } = useAuth();
   const { profile: selfProfile, getProfile, updateProfileState } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -47,6 +46,38 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
     }
   };
 
+  const handleFollowToggle = async () => {
+    if (!profile || isSelf) return;
+
+    try {
+      if (profile.isFollowing) {
+        await followService.unfollowUser(profile.id);
+        setOtherProfile(prev => prev ? ({ 
+          ...prev, 
+          isFollowing: false, 
+          followersCount: Math.max(0, prev.followersCount - 1) 
+        }) : null);
+      } else if (profile.isFollowRequested) {
+        // Optional: Cancel request if API supports it, or just do nothing/unfollow
+        await followService.unfollowUser(profile.id);
+        setOtherProfile(prev => prev ? ({ ...prev, isFollowRequested: false }) : null);
+      } else {
+        await followService.followUser(profile.id);
+        if (profile.isPrivate) {
+          setOtherProfile(prev => prev ? ({ ...prev, isFollowRequested: true }) : null);
+        } else {
+          setOtherProfile(prev => prev ? ({ 
+            ...prev, 
+            isFollowing: true, 
+            followersCount: prev.followersCount + 1 
+          }) : null);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to toggle follow status", error);
+    }
+  };
+
   // Tab state managed by URL params
   const activeTab = searchParams.get("tab") || "photos";
 
@@ -76,7 +107,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
             <div className="relative flex items-start -mt-12 mb-4">
               <div className="relative">
                 <img
-                  src={profile.profileURL || "src/assets/default-avatar.png"}
+                  src={profile.profileUrl || "src/assets/default-avatar.png"}
                   alt="Profile"
                   className="h-24 w-24 rounded-full border-4 border-white object-cover bg-white"
                 />
@@ -99,14 +130,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
                     <span className="font-bold text-gray-900">{profile.followingCount}</span> Following
                   </button>
                 </div>
+                {profile.description && (
+                  <p className="mt-4 text-gray-700 text-sm max-w-2xl">
+                    {profile.description}
+                  </p>
+                )}
               </div>
               <div className="mt-12">
-                {isSelf && (
+                {isSelf ? (
                   <button
                     onClick={() => setIsEditModalOpen(true)}
                     className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547]"
                   >
                     Edit Profile
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleFollowToggle}
+                    className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b99547] ${
+                      profile.isFollowing || profile.isFollowRequested
+                        ? "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        : "bg-[#b99547] text-white hover:bg-[#a0813d]"
+                    }`}
+                  >
+                    {profile.isFollowing ? "Unfollow" : profile.isFollowRequested ? "Requested" : "Follow"}
                   </button>
                 )}
               </div>
@@ -164,7 +211,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
 
           <div className="p-6">
             {activeTab === "photos" && (
-                <PhotoSection photos={!isSelf ? (profile.photos || []) : undefined} />
+                <PhotoSection 
+                  photos={!isSelf ? (profile.photos || []) : undefined} 
+                  milestones={!isSelf ? (profile.milestones || []) : undefined}
+                />
             )}
 
             {activeTab === "milestones" && (
