@@ -13,4 +13,5 @@ public interface FollowRequestRepository extends JpaRepository<FollowRequest, Lo
     List<FollowRequest> findByTargetAndStatus(User target, FollowRequest.RequestStatus status);
 
     Optional<FollowRequest> findByRequesterAndTarget(User requester, User target);
+    Optional<FollowRequest> findByRequesterAndTargetAndStatus(User requester, User target, FollowRequest.RequestStatus status);
 }

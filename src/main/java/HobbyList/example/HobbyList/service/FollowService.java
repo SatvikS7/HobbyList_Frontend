@@ -87,13 +87,15 @@ public class FollowService {
             if (existingRequest.isPresent()
                     && existingRequest.get().getStatus() == FollowRequest.RequestStatus.PENDING) {
                 followRequestRepository.delete(existingRequest.get());
+
             }
         }
     }
 
     @Transactional
     public void acceptRequest(User requester, User target) {
-        FollowRequest request = followRequestRepository.findByRequesterAndTarget(requester, target)
+        FollowRequest request = followRequestRepository
+                .findByRequesterAndTargetAndStatus(requester, target, FollowRequest.RequestStatus.PENDING)
                 .orElseThrow(() -> new IllegalArgumentException("Request not found"));
 
         if (request.getTarget().getId() != target.getId()) {
@@ -136,8 +138,9 @@ public class FollowService {
     }
 
     public boolean isFollowRequested(User requester, User target) {
-        Optional<FollowRequest> request = followRequestRepository.findByRequesterAndTarget(requester, target);
-        return request.isPresent() && request.get().getStatus() == FollowRequest.RequestStatus.PENDING;
+        Optional<FollowRequest> request = followRequestRepository.findByRequesterAndTargetAndStatus(requester, target,
+                FollowRequest.RequestStatus.PENDING);
+        return request.isPresent();
     }
 
     public List<UserSummaryDto> getFollowers(User targetUser, User currentUser) {
