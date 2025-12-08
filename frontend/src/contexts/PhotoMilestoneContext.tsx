@@ -8,10 +8,10 @@ import React, {
     useMemo 
 } from "react";
 
-import { useAuth } from "../contexts/AuthContext";
-import { type MilestoneDto, type PhotoDto } from "../types";
-import { photoService } from "../services/photoService";
-import { milestoneService } from "../services/milestoneService";
+import { useAuth } from "./AuthContext";
+import { type MilestoneDto, type PhotoDto } from "../../../backend/src/types";
+import { photoService } from "../../../backend/src/services/photoService";
+import { milestoneService } from "../../../backend/src/services/milestoneService";
 
 type MilestoneCacheShape = {
     milestones: MilestoneDto[] | null;

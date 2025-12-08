@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { type MilestoneDto } from "../types";
+import { type MilestoneDto } from "../../../backend/src/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 import toast from "react-hot-toast";

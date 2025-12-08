@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
-import { milestoneService } from "../services/milestoneService";
+import { milestoneService } from "../../../backend/src/services/milestoneService";
 import MilestoneCard from "./MilestoneCard";
 import MilestoneItem from "./MilestoneItem";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { type MilestoneDto } from "../types";
+import { type MilestoneDto } from "../../../backend/src/types";
 
 function MilestoneSection() {
   const { milestones, refreshMilestones, photos, invalidatePhotos} = usePhotoMilestone();

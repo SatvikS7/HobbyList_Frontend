@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext.tsx";
-import PhotoCard from "../components/PhotoCard.tsx";
+import PhotoCard from "./PhotoCard.tsx";
 
 type PhotoDto = {
   topic: string;
