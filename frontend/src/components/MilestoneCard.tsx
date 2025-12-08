@@ -2,18 +2,20 @@ import React, { useState, useEffect } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 import { useProfile } from "../contexts/ProfileContext";
 import PhotoCard from "./PhotoCard";
-import { milestoneService } from "../../../backend/src/services/milestoneService";
+import { milestoneService } from "../services/milestoneService";
 import toast from "react-hot-toast";
-import { type MilestoneDto } from "../../../backend/src/types";
+import { type MilestoneDto, type PhotoDto } from "../types";
 
 interface MilestoneCardProps {
   milestone: MilestoneDto;
   onClose: () => void;
   onDelete?: () => void;
+  isReadOnly?: boolean;
+  photos?: PhotoDto[];
 }
 
-const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete }) => {
-  const { milestoneMap, photoMap, refreshMilestones, photos, invalidatePhotos } = usePhotoMilestone();
+const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDelete, isReadOnly = false, photos }) => {
+  const { milestoneMap, photoMap, refreshMilestones, photos: contextPhotos, invalidatePhotos } = usePhotoMilestone();
   const { profile } = useProfile();
   const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
 
@@ -46,7 +48,12 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
   }, [milestone]);
 
   const taggedPhotos = milestone.taggedPhotoIds
-    .map((id) => photoMap.get(id))
+    .map((id) => {
+        if (photos) {
+            return photos.find(p => p.id === id);
+        }
+        return photoMap.get(id);
+    })
     .filter(Boolean);
 
   const togglePhotoSelection = (photoId: number) => {
@@ -195,7 +202,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
           
           {/* Actions */}
           <div className="absolute top-3 right-12 flex gap-2">
-            {!isEditing && (
+            {!isEditing && !isReadOnly && (
               <>
                 <button
                   className="text-[#b99547] hover:text-[#a07f36] px-2 py-1"
@@ -241,10 +248,25 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
                     type="date"
                     className="w-full p-2 border border-gray-300 rounded-md text-black"
                     value={editDate}
-                    min={new Date().toISOString().split("T")[0]}
+                    min={(() => {
+                      let minDateStr = new Date().toISOString().split("T")[0];
+                      if (milestone.subMilestones && milestone.subMilestones.length > 0) {
+                        const latestChildTimestamp = milestone.subMilestones.reduce((max, child) => {
+                          const t = new Date(child.dueDate).getTime();
+                          return t > max ? t : max;
+                        }, 0);
+                        if (latestChildTimestamp > 0) {
+                          const latestChildDateStr = new Date(latestChildTimestamp).toISOString().split("T")[0];
+                          if (latestChildDateStr > minDateStr) {
+                            minDateStr = latestChildDateStr;
+                          }
+                        }
+                      }
+                      return minDateStr;
+                    })()}
                     max={
-                      milestone.parentId 
-                        ? new Date(milestoneMap.get(milestone.parentId)?.dueDate || "").toISOString().split("T")[0]
+                      milestone.parentId && milestoneMap.get(milestone.parentId)?.dueDate
+                        ? new Date(milestoneMap.get(milestone.parentId)!.dueDate).toISOString().split("T")[0]
                         : undefined
                     }
                     onChange={(e) => setEditDate(e.target.value)}
@@ -373,12 +395,14 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClose, onDel
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-semibold text-gray-700">Sub-milestones</h3>
-                  <button
-                    onClick={() => setIsAddingSubtask(!isAddingSubtask)}
-                    className="text-sm text-[#b99547] hover:text-[#a07f36] font-medium"
-                  >
-                    {isAddingSubtask ? "Cancel" : "+ Add Subtask"}
-                  </button>
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => setIsAddingSubtask(!isAddingSubtask)}
+                      className="text-sm text-[#b99547] hover:text-[#a07f36] font-medium"
+                    >
+                      {isAddingSubtask ? "Cancel" : "+ Add Subtask"}
+                    </button>
+                  )}
                 </div>
 
                 {isAddingSubtask && (

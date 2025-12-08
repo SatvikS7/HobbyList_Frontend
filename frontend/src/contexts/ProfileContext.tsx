@@ -8,9 +8,9 @@ import React, {
   useMemo,
 } from "react";
 
-import { useAuth } from "./AuthContext";
-import { type ProfileDto } from "../../../backend/src/types";
-import { profileService } from "../../../backend/src/services/profileService";
+import { useAuth } from "../contexts/AuthContext";
+import { type ProfileDto } from "../types";
+import { profileService } from "../services/profileService";
 
 type ProfileCacheShape = {
   profile: ProfileDto | null;
@@ -149,7 +149,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     const p = (async () => {
       setLoading(true);
       try {
-        const fresh = await profileService.getProfile();
+        const fresh = await profileService.getSelfProfile();
         setProfile(fresh);
         setLastProfileFetchTs(Date.now());
         // When we fetch from server, server data represents the ground truth so set hobbies fresh.
@@ -180,7 +180,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     setLoading(true);
     try {
-      const fresh = await profileService.getProfile();
+      const fresh = await profileService.getSelfProfile();
       setProfile(fresh);
       setLastProfileFetchTs(Date.now());
       setIsHobbyCacheFresh(true);

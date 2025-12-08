@@ -1,28 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext.tsx";
-import PhotoCard from "./PhotoCard.tsx";
-
-type PhotoDto = {
-  topic: string;
-  imageUrl: string;
-  description: string;
-  uploadDate: string;
-  taggedMilestoneIds: number[];
-};
+import PhotoCard from "../components/PhotoCard.tsx";
+import { type PhotoDto, type MilestoneDto } from "../types";
 
 type PhotoSectionProps = {
   initialTag?: string;
+  photos?: PhotoDto[];
+  milestones?: MilestoneDto[];
 };
 
-const PhotoSection: React.FC<PhotoSectionProps> = ({ initialTag = "All" }) => {
-  const { photos, getPhotos } = usePhotoMilestone();
+const PhotoSection: React.FC<PhotoSectionProps> = ({ initialTag = "All", photos: propPhotos, milestones: propMilestones }) => {
+  const { photos: contextPhotos, getPhotos, milestones: contextMilestones } = usePhotoMilestone();
+  
+  // Use props if available, otherwise fallback to context
+  const photos = propPhotos || contextPhotos;
+  const milestones = propMilestones || contextMilestones || [];
+
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoDto[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>(initialTag);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoDto | null>(null);
 
-  // Fetch photos from cache or backend
+  // Fetch photos from cache or backend (only if using context)
   const fetchPhotos = async () => {
+    if (propPhotos) {
+        setFilteredPhotos(propPhotos);
+        const uniqueTags = Array.from(new Set(propPhotos.map((p) => p.topic)));
+        setTags(uniqueTags);
+        return;
+    }
+
     try {
       const data = await getPhotos();
       if (data) {
@@ -38,7 +45,7 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({ initialTag = "All" }) => {
 
   useEffect(() => {
     fetchPhotos();
-  }, []);
+  }, [propPhotos]); // Re-run if propPhotos changes
 
   // Filter photos by tag
   useEffect(() => {
@@ -95,6 +102,7 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({ initialTag = "All" }) => {
           uploadDate={selectedPhoto.uploadDate}
           taggedMilestoneIds={selectedPhoto.taggedMilestoneIds}
           onClose={() => setSelectedPhoto(null)}
+          milestones={milestones}
         />
       )}
     </div>

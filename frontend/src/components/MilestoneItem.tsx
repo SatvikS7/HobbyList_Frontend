@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { type MilestoneDto } from "../../../backend/src/types";
+import { type MilestoneDto } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 import toast from "react-hot-toast";
@@ -9,20 +9,22 @@ interface MilestoneItemProps {
   onDelete: (id: number) => void;
   onClick: (milestone: MilestoneDto) => void;
   depth?: number;
+  isReadOnly?: boolean;
 }
 
 const MilestoneItem: React.FC<MilestoneItemProps> = ({ 
   milestone, 
   onDelete, 
   onClick, 
-  depth = 0 
+  depth = 0,
+  isReadOnly = false
 }) => {
-  const { milestoneMap, completeMilestone, incompleteMilestone, refreshMilestones } = usePhotoMilestone();
+  const { completeMilestone, incompleteMilestone } = usePhotoMilestone();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const hasChildren = milestone.subMilestones && milestone.subMilestones.length > 0;
 
-  const percentage = (milestoneMap.get(milestone.id)?.completionRate ?? 0) * 100;
+  const percentage = (milestone.completionRate ?? 0) * 100;
 
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -31,7 +33,7 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
 
   const handleToggleCompletion = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isToggling) return;
+    if (isToggling || isReadOnly) return;
 
     try {
       setIsToggling(true);
@@ -121,38 +123,42 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
           >
             {milestone.completed ? "Completed" : "Pending"}
           </span>
-          <button
-            onClick={handleToggleCompletion}
-            disabled={isToggling}
-            className={`p-1 rounded transition-colors ${
-              milestone.completed
-                ? "text-green-600 hover:bg-green-100"
-                : "text-gray-400 hover:text-[#b99547] hover:bg-[#f5e6c8]"
-            }`}
-            title={milestone.completed ? "Mark as Incomplete" : "Mark as Complete"}
-          >
-            {milestone.completed ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(milestone.id);
-            }}
-            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
-            title="Delete Milestone"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          </button>
+          {!isReadOnly && (
+            <>
+              <button
+                onClick={handleToggleCompletion}
+                disabled={isToggling}
+                className={`p-1 rounded transition-colors ${
+                  milestone.completed
+                    ? "text-green-600 hover:bg-green-100"
+                    : "text-gray-400 hover:text-[#b99547] hover:bg-[#f5e6c8]"
+                }`}
+                title={milestone.completed ? "Mark as Incomplete" : "Mark as Complete"}
+              >
+                {milestone.completed ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(milestone.id);
+                }}
+                className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                title="Delete Milestone"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -173,6 +179,7 @@ const MilestoneItem: React.FC<MilestoneItemProps> = ({
                   onDelete={onDelete}
                   onClick={onClick}
                   depth={depth + 1}
+                  isReadOnly={isReadOnly}
                 />
               ))}
             </div>
