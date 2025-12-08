@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from "react-router-dom";
 import { useProfile } from "../contexts/ProfileContext";
-import { profileService } from "../../../backend/src/services/profileService";
-import { followService } from "../../../backend/src/services/followService";
-import { type ProfileDto } from "../../../backend/src/types";
+import { profileService } from "../services/profileService";
+import { followService } from "../services/followService";
+import { type ProfileDto } from "../types";
 import EditProfileModal from "./EditProfileModal";
 import MilestoneSection from "./MilestoneSection";
 import PhotoSection from "./PhotoSection";

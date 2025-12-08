@@ -9,8 +9,8 @@ import React, {
 } from "react";
 
 import { useAuth } from "./AuthContext";
-import { type ProfileDto } from "../../../backend/src/types";
-import { profileService } from "../../../backend/src/services/profileService";
+import { type ProfileDto } from "../types";
+import { profileService } from "../services/profileService";
 
 type ProfileCacheShape = {
   profile: ProfileDto | null;

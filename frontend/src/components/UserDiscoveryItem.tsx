@@ -1,6 +1,6 @@
 import React from 'react';
-import { type UserSummaryDto } from '../../../backend/src/types';
-import { followService } from '../../../backend/src/services/followService';
+import { type UserSummaryDto } from '../types';
+import { followService } from '../services/followService';
 import { useNavigate } from 'react-router-dom';
 
 interface UserDiscoveryItemProps {

@@ -9,9 +9,9 @@ import React, {
 } from "react";
 
 import { useAuth } from "./AuthContext";
-import { type MilestoneDto, type PhotoDto } from "../../../backend/src/types";
-import { photoService } from "../../../backend/src/services/photoService";
-import { milestoneService } from "../../../backend/src/services/milestoneService";
+import { type MilestoneDto, type PhotoDto } from "../types";
+import { photoService } from "../services/photoService";
+import { milestoneService } from "../services/milestoneService";
 
 type MilestoneCacheShape = {
     milestones: MilestoneDto[] | null;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext.tsx";
 import PhotoCard from "./PhotoCard.tsx";
-import { type PhotoDto, type MilestoneDto } from "../../../backend/src/types/index.ts";
+import { type PhotoDto, type MilestoneDto } from "../types/index.ts";
 
 type PhotoSectionProps = {
   initialTag?: string;

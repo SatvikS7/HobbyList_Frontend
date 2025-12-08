@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { type UserSummaryDto } from '../../../backend/src/types';
-import { followService } from '../../../backend/src/services/followService';
+import { type UserSummaryDto } from '../types';
+import { followService } from '../services/followService';
 import UserDiscoveryItem from './UserDiscoveryItem';
 
 interface UserListModalProps {

@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-HobbyListApplication<HobbyList>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "HobbyList.example.HobbyList.HobbyListApplication",
+            "projectName": "HobbyList",
+            "args": "",
+            "envFile": "${workspaceFolder}/backend/.env"
+        }
+    ]
+}
