@@ -10,13 +10,16 @@ public final class SecurityConstants {
             "/api/photos/upload-url",
             "/api/photos",
             "/api/profile",
-            "/api/profile/photo/upload-url",
-            "/api/profile/photo",
+            "/api/profile/upload-url",
+            "/api/profile/save-url",
             "/api/profile/hobbies",
             "/api/milestones",
             "/api/milestones/**",
             "/api/milestones/no-photo",
             "/api/milestones/all",
+            "/api/users/discover",
+            "/api/users/search",
+            
     };
 
     private SecurityConstants() {

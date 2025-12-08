@@ -26,8 +26,8 @@ public class UserMapper {
             user.setDisplayName(dto.displayName());
         }   
 
-        if (dto.profileURL() != null) {
-            user.setProfileURL(dto.profileURL());
+        if (dto.profileUrl() != null) {
+            user.setProfileUrl(dto.profileUrl());
         }
 
         if (dto.hobbies() != null) {

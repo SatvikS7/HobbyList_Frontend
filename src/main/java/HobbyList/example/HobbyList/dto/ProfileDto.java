@@ -1,18 +1,18 @@
 package HobbyList.example.HobbyList.dto;
-import java.util.ArrayList;
+
+import java.util.List;
 
 public record ProfileDto(
-        String profileURL,
-        String description,
-        String displayName,
-        Boolean isPrivate,
-        ArrayList<String> hobbies
-) {
-    public ProfileDto(String profileURL, String description, String displayName, Boolean isPrivate, ArrayList<String> hobbies) {
-        this.profileURL = profileURL;
-        this.description = description;
-        this.displayName = displayName;
-        this.isPrivate = isPrivate;
-        this.hobbies = hobbies;
-    }
-}
+                long id,
+                String displayName,
+                String profileUrl,
+                String description,
+                List<String> hobbies,
+                Boolean isPrivate,
+                int followersCount,
+                int followingCount,
+                boolean isFollowing,
+                boolean isFollowRequested,
+                List<MilestoneDto> milestones,
+                List<PhotoDto> photos) 
+{}
