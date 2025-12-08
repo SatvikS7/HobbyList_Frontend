@@ -8,9 +8,9 @@ import React, {
   useMemo,
 } from "react";
 
-import { useAuth } from "../contexts/AuthContext";
-import { type ProfileDto } from "../types";
-import { profileService } from "../services/profileService";
+import { useAuth } from "./AuthContext";
+import { type ProfileDto } from "../../../backend/src/types";
+import { profileService } from "../../../backend/src/services/profileService";
 
 type ProfileCacheShape = {
   profile: ProfileDto | null;

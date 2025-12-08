@@ -1,4 +1,4 @@
-package HobbyList.example.HobbyList.security;
+package HobbyList.example.HobbyList.Security;
 
 public final class SecurityConstants {
     public static final String[] AUTH_WHITELIST = {

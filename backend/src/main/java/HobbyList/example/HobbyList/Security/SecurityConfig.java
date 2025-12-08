@@ -1,4 +1,4 @@
-package HobbyList.example.HobbyList.security;
+package HobbyList.example.HobbyList.Security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

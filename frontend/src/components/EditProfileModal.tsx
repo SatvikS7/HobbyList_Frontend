@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { type ProfileDto } from "../types";
+import { type ProfileDto } from "../../../backend/src/types";
 
 type EditProfileModalProps = {
   profile: ProfileDto | null;

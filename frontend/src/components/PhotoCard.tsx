@@ -1,6 +1,6 @@
 import React from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
-import { type MilestoneDto } from "../types";
+import { type MilestoneDto } from "../../../backend/src/types";
 
 interface PhotoCardProps {
   imageUrl: string;

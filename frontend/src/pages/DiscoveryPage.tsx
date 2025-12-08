@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import UserDiscoveryItem from '../components/UserDiscoveryItem';
-import { type UserSummaryDto } from '../types';
+import { type UserSummaryDto } from '../../../backend/src/types';
 import { userService } from '../services/userService';
 import { followService } from '../services/followService';
 

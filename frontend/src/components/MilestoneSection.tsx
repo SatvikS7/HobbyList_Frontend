@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
-import { milestoneService } from "../services/milestoneService";
+import { milestoneService } from "../../../backend/src/services/milestoneService";
 import MilestoneCard from "./MilestoneCard";
 import MilestoneItem from "./MilestoneItem";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { type MilestoneDto, type PhotoDto } from "../types";
+import { type MilestoneDto, type PhotoDto } from "../../../backend/src/types";
 
 interface MilestoneSectionProps {
   milestones?: MilestoneDto[];

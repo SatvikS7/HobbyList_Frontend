@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { usePhotoMilestone } from "../contexts/PhotoMilestoneContext";
 import { useProfile } from "../contexts/ProfileContext";
 import PhotoCard from "./PhotoCard";
-import { milestoneService } from "../services/milestoneService";
+import { milestoneService } from "../../../backend/src/services/milestoneService";
 import toast from "react-hot-toast";
-import { type MilestoneDto, type PhotoDto } from "../types";
+import { type MilestoneDto, type PhotoDto } from "../../../backend/src/types";
 
 interface MilestoneCardProps {
   milestone: MilestoneDto;
