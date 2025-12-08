@@ -3,8 +3,13 @@ import { type ProfileDto } from '../types';
 import axios from 'axios';
 
 export const profileService = {
-    getProfile: async (): Promise<ProfileDto> => {
+    getSelfProfile: async (): Promise<ProfileDto> => {
         const response = await api.get<ProfileDto>('/profile');
+        return response.data;
+    },
+
+    getProfile: async (id: number): Promise<ProfileDto> => {
+        const response = await api.get<ProfileDto>('/profile/' + id);
         return response.data;
     },
 

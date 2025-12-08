@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-
-type ProfileDto = {
-    profileURL: string | null;
-    description: string;
-    displayName: string;
-    isPrivate: boolean;
-    hobbies: string[];
-}
+import { type ProfileDto } from "../types";
 
 type EditProfileModalProps = {
-  profile: { profileURL: string | null; description: string; displayName: string; isPrivate: boolean; hobbies: string[] } | ProfileDto | null;
+  profile: ProfileDto | null;
   onClose: () => void;
-  onSave: (updatedProfile: { profileURL: string | null; description: string; displayName: string; isPrivate: boolean; hobbies: string[] }) => void;
+  onSave: (updatedProfile: ProfileDto) => void;
 };
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE;
@@ -143,9 +136,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         <div className="flex flex-col gap-4">
           {/* Profile Picture Preview */}
           <div className="flex flex-col items-center">
-            {profile?.profileURL ? (
+            {profile?.profileUrl ? (
               <img
-                src={profile.profileURL}
+                src={profile.profileUrl}
                 alt="Profile"
                 className="w-24 h-24 rounded-full object-cover border border-gray-300 mb-2"
               />

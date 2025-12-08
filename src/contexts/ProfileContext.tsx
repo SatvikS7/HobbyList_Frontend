@@ -149,7 +149,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     const p = (async () => {
       setLoading(true);
       try {
-        const fresh = await profileService.getProfile();
+        const fresh = await profileService.getSelfProfile();
         setProfile(fresh);
         setLastProfileFetchTs(Date.now());
         // When we fetch from server, server data represents the ground truth so set hobbies fresh.
@@ -180,7 +180,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     setLoading(true);
     try {
-      const fresh = await profileService.getProfile();
+      const fresh = await profileService.getSelfProfile();
       setProfile(fresh);
       setLastProfileFetchTs(Date.now());
       setIsHobbyCacheFresh(true);
