@@ -60,9 +60,9 @@ public class MilestoneServiceTest {
         MilestoneDto dto = milestoneService.toDto(milestone);
 
         assertNotNull(dto);
-        assertEquals(milestone.getId(), dto.getId());
-        assertEquals(milestone.getTask(), dto.getTask());
-        assertEquals(parentMilestone.getId(), dto.getParentId());
+        assertEquals(milestone.getId(), dto.id());
+        assertEquals(milestone.getTask(), dto.task());
+        assertEquals(parentMilestone.getId(), dto.parentId());
     }
 
     @Test

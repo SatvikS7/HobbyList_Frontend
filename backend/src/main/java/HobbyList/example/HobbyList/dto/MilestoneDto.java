@@ -16,22 +16,22 @@ public record MilestoneDto(
         String hobbyTag,
         String manualState) {
 
-    public Long getId() {
-        return id;
+    public MilestoneDto(String task) {
+        this(null, task, null, false, null, null, null, new ArrayList<>(), null, null);
     }
 
-    public String getTask() {
-        return task;
-    }
-
-    public long getParentId() {
-        return parentId;
+    public MilestoneDto(String task, Boolean completed) {
+        this(null, task, null, completed, null, null, null, new ArrayList<>(), null, null);
     }
 
     public List<Long> getSubMilestoneIds() {
         List<Long> subMilestoneIds = new ArrayList<>();
-        for (MilestoneDto dto : subMilestones) {
-            subMilestoneIds.add(dto.getId());
+        if (subMilestones != null) {
+            for (MilestoneDto dto : subMilestones) {
+                if (dto.id() != null) {
+                    subMilestoneIds.add(dto.id());
+                }
+            }
         }
         return subMilestoneIds;
     }
